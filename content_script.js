@@ -50,6 +50,8 @@
     document.querySelectorAll('.review-thread-component, .js-resolvable-timeline-thread-container').forEach(thread => {
       if (processedThreads.has(thread)) return;
       processedThreads.add(thread);
+      // Skip resolved threads (conversation page)
+      if (thread.getAttribute('data-resolved') === 'true') return;
       const commentEls = thread.querySelectorAll('.review-comment');
       if (!commentEls.length) return;
       // First comment is the main review
