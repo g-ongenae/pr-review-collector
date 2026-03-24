@@ -82,6 +82,84 @@
 #prc-meta-box strong { color: #1f2328; font-size: 13px; }
 @media (prefers-color-scheme: dark) { #prc-meta-box strong { color: #e6edf3; } }
 
+/* Ignored authors */
+#prc-ignored-box {
+  padding: 6px 14px;
+  border-bottom: 1px solid #d0d7de;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+@media (prefers-color-scheme: dark) { #prc-ignored-box { border-color: #30363d; } }
+.prc-ignored-summary {
+  cursor: pointer;
+  color: #57606a;
+  font-size: 11px;
+  user-select: none;
+}
+@media (prefers-color-scheme: dark) { .prc-ignored-summary { color: #8b949e; } }
+#prc-ignored-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.prc-ignored-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  border-radius: 12px;
+  padding: 1px 6px;
+  font-size: 11px;
+  color: #57606a;
+}
+@media (prefers-color-scheme: dark) {
+  .prc-ignored-tag { background: #161b22; border-color: #30363d; color: #8b949e; }
+}
+.prc-ignored-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8b949e;
+  font-size: 10px;
+  padding: 0 2px;
+  line-height: 1;
+}
+.prc-ignored-remove:hover { color: #cf222e; }
+.prc-ignored-add {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.prc-ignored-add input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  background: #fff;
+  color: #1f2328;
+}
+@media (prefers-color-scheme: dark) {
+  .prc-ignored-add input { background: #161b22; border-color: #30363d; color: #e6edf3; }
+}
+.prc-ignored-add button {
+  background: none;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 13px;
+  color: #57606a;
+}
+.prc-ignored-add button:hover { background: #f3f4f6; }
+@media (prefers-color-scheme: dark) {
+  .prc-ignored-add button { border-color: #30363d; color: #8b949e; }
+  .prc-ignored-add button:hover { background: #21262d; }
+}
+
 /* Review list */
 #prc-list {
   flex: 1;

@@ -22,6 +22,25 @@
     if (sidebar.classList.contains('prc-open')) loadReviews();
   });
 
+  // ── Ignored authors ─────────────────────────────────────────────────────
+  const IGNORED_AUTHORS_KEY = 'prc-ignored-authors';
+  const DEFAULT_IGNORED_AUTHORS = ['notion-workspace', 'nx-cloud'];
+
+  function getIgnoredAuthors() {
+    const stored = localStorage.getItem(IGNORED_AUTHORS_KEY);
+    if (stored) return JSON.parse(stored);
+    localStorage.setItem(IGNORED_AUTHORS_KEY, JSON.stringify(DEFAULT_IGNORED_AUTHORS));
+    return DEFAULT_IGNORED_AUTHORS;
+  }
+
+  function saveIgnoredAuthors(list) {
+    localStorage.setItem(IGNORED_AUTHORS_KEY, JSON.stringify(list));
+  }
+
+  function isIgnoredAuthor(author) {
+    return getIgnoredAuthors().some(a => a.toLowerCase() === (author || '').toLowerCase());
+  }
+
   // ── Review scraping ──────────────────────────────────────────────────────
   function scrapeReviews() {
     const reviews = [];
@@ -29,7 +48,7 @@
     // ── 1. Inline file review comments (standard PR diff comments) ──────────
     document.querySelectorAll('.review-comment, .inline-comment-form-container').forEach(el => {
       const comment = extractInlineComment(el);
-      if (comment && !isNoiseComment(comment)) reviews.push(comment);
+      if (comment && !isNoiseComment(comment) && !isIgnoredAuthor(comment.author)) reviews.push(comment);
     });
 
     // ── 2. PR-level review comments (conversation tab) ────────────────────
@@ -39,7 +58,7 @@
       // Skip if already captured as inline
       if (wrapper.closest('.review-comment')) return;
       const c = extractConversationComment(el, wrapper);
-      if (c && !isNoiseComment(c)) reviews.push(c);
+      if (c && !isNoiseComment(c) && !isIgnoredAuthor(c.author)) reviews.push(c);
     });
 
     // ── 3. SonarQube / SonarCloud annotations ────────────────────────────
@@ -231,6 +250,16 @@
       <div id="prc-meta-box">
         <div id="prc-meta-info"></div>
       </div>
+      <div id="prc-ignored-box">
+        <details>
+          <summary class="prc-ignored-summary">Ignored authors</summary>
+          <div id="prc-ignored-list"></div>
+          <div class="prc-ignored-add">
+            <input id="prc-ignored-input" type="text" placeholder="Add author…">
+            <button id="prc-ignored-add-btn">+</button>
+          </div>
+        </details>
+      </div>
       <div id="prc-list"></div>
       <div id="prc-footer">
         <button id="prc-copy">📋 Copy to clipboard</button>
@@ -361,6 +390,44 @@
     }
 
     return lines.join('\n');
+  }
+
+  // ── Ignored authors UI ──────────────────────────────────────────────────
+  function renderIgnoredAuthors() {
+    const list = document.getElementById('prc-ignored-list');
+    const authors = getIgnoredAuthors();
+    list.innerHTML = authors.map(a =>
+      `<span class="prc-ignored-tag">${escHtml(a)}<button class="prc-ignored-remove" data-author="${escHtml(a)}">✕</button></span>`
+    ).join('');
+    list.querySelectorAll('.prc-ignored-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const updated = getIgnoredAuthors().filter(x => x.toLowerCase() !== btn.dataset.author.toLowerCase());
+        saveIgnoredAuthors(updated);
+        renderIgnoredAuthors();
+        loadReviews();
+      });
+    });
+  }
+
+  renderIgnoredAuthors();
+
+  document.getElementById('prc-ignored-add-btn').addEventListener('click', addIgnoredAuthor);
+  document.getElementById('prc-ignored-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addIgnoredAuthor();
+  });
+
+  function addIgnoredAuthor() {
+    const input = document.getElementById('prc-ignored-input');
+    const name = input.value.trim();
+    if (!name) return;
+    const authors = getIgnoredAuthors();
+    if (!authors.some(a => a.toLowerCase() === name.toLowerCase())) {
+      authors.push(name);
+      saveIgnoredAuthors(authors);
+      renderIgnoredAuthors();
+      loadReviews();
+    }
+    input.value = '';
   }
 
   // ── Wire up sidebar buttons ───────────────────────────────────────────────
