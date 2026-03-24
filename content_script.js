@@ -240,9 +240,9 @@
     const firstComment = thread.querySelector('[data-first-thread-comment="true"]');
     if (!firstComment) return null;
 
-    // Author
+    // Author (use textContent — innerText fails with content-visibility:auto)
     const authorEl = firstComment.querySelector('[data-testid="avatar-link"], [class*="AuthorName"]');
-    const author = authorEl ? authorEl.innerText.trim() : 'unknown';
+    const author = authorEl ? (authorEl.textContent || '').trim() : 'unknown';
 
     // Comment body
     const bodyEl = firstComment.querySelector('.markdown-body');
@@ -305,10 +305,10 @@
 
   function extractChangesPageReply(el) {
     const authorEl = el.querySelector('[data-testid="avatar-link"], [class*="AuthorName"]');
-    const author = authorEl ? authorEl.innerText.trim() : 'unknown';
+    const author = authorEl ? (authorEl.textContent || '').trim() : 'unknown';
     const bodyEl = el.querySelector('.markdown-body');
     if (!bodyEl) return null;
-    const comment = bodyEl.innerText.trim();
+    const comment = (bodyEl.textContent || '').trim();
     if (!comment) return null;
     return { author, comment };
   }
