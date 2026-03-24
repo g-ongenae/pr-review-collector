@@ -351,9 +351,18 @@
 
   // ── Inline annotation on changes page (SonarCloud, CI checks, etc.) ────
   function extractInlineAnnotation(el) {
-    // Message text (the bold warning/error text)
-    const msgEl = el.querySelector('[data-weight="semibold"], [class*="Annotation-module"] span[class*="fgColor"]');
-    const comment = msgEl ? (msgEl.textContent || '').trim() : '';
+    // Message text: prefer the sr-only <h2> which has clean text like
+    // "Check warning: Remove this unused import of 'AnalysisConfigurationMode'."
+    let comment = '';
+    const srHeading = el.querySelector('h2.sr-only');
+    if (srHeading) {
+      comment = (srHeading.textContent || '').replace(/^Check\s+(warning|error|notice)[:\s]*/i, '').trim();
+    }
+    // Fallback: the bold message span (data-size="medium" to avoid matching heading spans)
+    if (!comment) {
+      const msgEl = el.querySelector('[data-size="medium"][data-weight="semibold"]');
+      if (msgEl) comment = (msgEl.textContent || '').trim();
+    }
     if (!comment) return null;
 
     // Severity from data-level attribute
@@ -363,20 +372,31 @@
 
     // Source (e.g. "SonarCloud Code Analysis")
     let author = '';
-    const sourceEl = el.querySelector('[class*="annotationSource"] [data-size="small"]');
+    const sourceEl = el.querySelector('[class*="annotationSource"] [data-size="small"]:not([data-weight])');
     if (sourceEl) author = (sourceEl.textContent || '').trim();
     if (!author) {
       const imgAlt = el.querySelector('[class*="annotationSource"] img');
       if (imgAlt) author = imgAlt.alt.replace(' avatar image', '').trim();
     }
+    // Fallback: check the truncate title attribute "null / SonarCloud Code Analysis"
+    if (!author) {
+      const truncEl = el.querySelector('[class*="annotationSource"] [title]');
+      if (truncEl) {
+        const title = truncEl.getAttribute('title') || '';
+        author = title.replace(/^null\s*\/\s*/, '').trim();
+      }
+    }
     if (!author) author = 'CI Check';
 
-    // Line number from heading "Check warning on line R4"
+    // Line number from the visible heading "Check warning on line R4"
     let linesText = '';
-    const headingEl = el.querySelector('h2');
-    if (headingEl) {
-      const m = (headingEl.textContent || '').match(/R(\d+)/);
-      if (m) linesText = `L${m[1]}`;
+    const visibleHeading = el.querySelector('h2:not(.sr-only)');
+    if (visibleHeading) {
+      const lineSpan = visibleHeading.querySelector('.text-semibold, [class*="fgColor-default"]');
+      if (lineSpan) {
+        const m = (lineSpan.textContent || '').match(/R(\d+)/);
+        if (m) linesText = `L${m[1]}`;
+      }
     }
 
     // File path from parent diff container
