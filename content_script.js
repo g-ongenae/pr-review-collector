@@ -63,9 +63,6 @@
     const body = el.querySelector('.comment-body, .js-comment-body');
     if (!body) return null;
 
-    const commentText = body.innerText.trim();
-    if (!commentText) return null;
-
     const authorEl = el.querySelector('.author');
     const author = authorEl ? authorEl.innerText.trim() : 'unknown';
 
@@ -89,15 +86,74 @@
       }
     }
 
-    // Suggested change block
+    // Suggested change block — extract diff with +/- markers
     let suggestion = '';
-    const suggestEl = el.querySelector('.js-suggested-changes-blob');
-    if (suggestEl) suggestion = suggestEl.innerText.trim();
+    const suggestContainer = el.querySelector('.js-suggested-changes-container') || el.querySelector('.js-suggested-changes-blob');
+    if (suggestContainer) {
+      suggestion = extractSuggestionDiff(suggestContainer);
+    }
+
+    // Extract comment text, stripping suggestion blocks and UI artifacts
+    const cleanBody = body.cloneNode(true);
+    // Remove suggestion containers, buttons, and interactive elements
+    cleanBody.querySelectorAll([
+      '.js-suggested-changes-container', '.js-suggested-changes-blob',
+      '.suggested-changes-container', '.blob-wrapper',
+      '.js-comment-edit-button', '.review-simple-reply-button',
+      'button', '.btn', '[data-hotkey]', '[role="button"]',
+      '.suggested-changes-header', '.js-suggestion-diff-header'
+    ].join(', ')).forEach(n => n.remove());
+    let commentText = cleanBody.innerText.trim();
+    // Strip any remaining GitHub suggestion UI noise via text cleanup
+    commentText = commentText
+      .replace(/^Suggested change\s*/gim, '')
+      .replace(/^Commit suggestion\s*/gim, '')
+      .replace(/^Add suggestion to batch\s*/gim, '')
+      .trim();
+    if (!commentText) return null;
 
     // Severity type heuristics (SonarQube / Copilot label tags)
     const type = detectType(el, commentText);
 
     return { file, lines: linesText, author, type, comment: commentText, suggestion, decision: '', note: '' };
+  }
+
+  // Extract suggestion diff with +/- markers from GitHub's suggestion container
+  function extractSuggestionDiff(container) {
+    const lines = [];
+
+    // GitHub renders suggestion diffs as table rows with background colors.
+    // Try multiple selector strategies to find deletion/addition rows.
+    const rows = container.querySelectorAll('tr, .blob-code-inner');
+
+    if (rows.length) {
+      rows.forEach(row => {
+        // Check class names and background styles for deletion/addition markers
+        const cls = row.className || '';
+        const codeEl = row.querySelector('.blob-code-inner') || row;
+        const text = codeEl.innerText;
+        if (!text || !text.trim()) return;
+
+        if (/deletion|removed/i.test(cls) || row.querySelector('.blob-code-deletion')) {
+          lines.push('- ' + text);
+        } else if (/addition|added/i.test(cls) || row.querySelector('.blob-code-addition')) {
+          lines.push('+ ' + text);
+        } else if (/context|unchanged/i.test(cls)) {
+          lines.push('  ' + text);
+        }
+      });
+    }
+
+    if (lines.length) return lines.join('\n');
+
+    // Fallback: extract raw text and strip UI noise before returning
+    let raw = container.innerText.trim();
+    raw = raw
+      .replace(/^Suggested change\s*/im, '')
+      .replace(/Commit suggestion\s*/im, '')
+      .replace(/Add suggestion to batch\s*/im, '')
+      .trim();
+    return raw;
   }
 
   // ── Conversation-level comment ───────────────────────────────────────────
@@ -244,7 +300,7 @@
           ${r.type ? `<span class="prc-type prc-type-${(r.type || '').toLowerCase()}">${escHtml(r.type)}</span>` : ''}
         </div>
         <div class="prc-comment">${escHtml(r.comment)}</div>
-        ${r.suggestion ? `<div class="prc-suggestion"><em>Suggestion:</em><pre>${escHtml(r.suggestion)}</pre></div>` : ''}
+        ${r.suggestion ? `<div class="prc-suggestion"><em>Suggested change:</em><pre>${formatSuggestionHtml(r.suggestion)}</pre></div>` : ''}
         <div class="prc-decision-row">
           <select class="prc-decision-select" data-idx="${i}">${opts}</select>
           <input class="prc-note-input" data-idx="${i}" type="text" placeholder="Optional note…" value="${escHtml(r.note)}">
@@ -301,7 +357,7 @@
         if (r.type)  lines.push(`- **Type**: ${r.type}`);
         if (r.suggestion) {
           lines.push('- **Suggested change**:');
-          lines.push('  ```');
+          lines.push('  ```diff');
           r.suggestion.split('\n').forEach(l => lines.push('  ' + l));
           lines.push('  ```');
         }
@@ -340,6 +396,15 @@
   // ── Utilities ─────────────────────────────────────────────────────────────
   function escHtml(s) {
     return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatSuggestionHtml(suggestion) {
+    return suggestion.split('\n').map(l => {
+      const escaped = escHtml(l);
+      if (l.startsWith('- ')) return `<span class="prc-diff-del">${escaped}</span>`;
+      if (l.startsWith('+ ')) return `<span class="prc-diff-add">${escaped}</span>`;
+      return escaped;
+    }).join('\n');
   }
 
   function shortenPath(p) {

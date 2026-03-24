@@ -189,7 +189,13 @@
   border-radius: 0 4px 4px 0;
   margin-bottom: 6px;
 }
-.prc-suggestion pre { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
+.prc-suggestion pre { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+.prc-diff-del { color: #cf222e; background: #ffebe9; display: block; padding: 0 4px; border-radius: 2px; }
+.prc-diff-add { color: #1a7f37; background: #dafbe1; display: block; padding: 0 4px; border-radius: 2px; }
+@media (prefers-color-scheme: dark) {
+  .prc-diff-del { color: #ff7b72; background: #3d1117; }
+  .prc-diff-add { color: #7ee787; background: #0d2818; }
+}
 @media (prefers-color-scheme: dark) {
   .prc-suggestion { background: #161b22; border-color: #388bfd; color: #8b949e; }
 }
