@@ -599,10 +599,14 @@
     const lines = [];
     lines.push('# PR Reviews — human decisions for Claude');
     lines.push('');
-    lines.push('Here is the list of pull request review comments with human decisions.');
-    lines.push('For each item, apply the stated decision. Ask for any missing information');
-    lines.push('before implementing changes. List all the actions you will take before');
-    lines.push('starting, and update the TODO list as you go.');
+    lines.push('Below are pull request review comments, each with a human decision on how to handle it.');
+    lines.push('');
+    lines.push('## Instructions');
+    lines.push('');
+    lines.push('- **Apply** each decision as stated (Apply, Fix, Explain, etc.)');
+    lines.push('- **Ask** for clarification if any information is missing before making changes');
+    lines.push('- **Plan first**: list all actions you will take, then wait for confirmation');
+    lines.push('- **Track progress**: update the TODO list as you complete each item');
     lines.push('');
     const strategy = document.getElementById('prc-strategy-select')?.value || 'grouped';
     const strategyInstructions = {
