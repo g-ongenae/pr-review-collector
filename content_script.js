@@ -556,7 +556,7 @@
   }
 
   function renderCard(r, i) {
-    const DECISIONS = ['', 'Apply', 'Fix', 'Explain', 'Plan fix', 'Investigate', 'Ignore', 'Other'];
+    const DECISIONS = ['', 'Apply', 'Fix', 'Ack', 'Explain', 'Defer', "Won't fix", 'Ignore', 'Other'];
     const opts = DECISIONS.map(d => `<option value="${d}" ${r.decision === d ? 'selected' : ''}>${d || '— pick decision —'}</option>`).join('');
     const ignClass = r.decision === 'Ignore' ? ' prc-card-ignored' : '';
     return `

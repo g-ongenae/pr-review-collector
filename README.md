@@ -109,13 +109,14 @@ The extension is active until Firefox is closed. Repeat step 4–5 after each re
 
    | Decision | When to use |
    |---|---|
-   | **Apply** | Accept the suggestion as-is |
-   | **Fix** | Fix the issue, optionally add a note with guidance |
-   | **Explain** | Ask Claude to explain the comment or a related question |
-   | **Plan fix** | Draft a plan before implementing |
-   | **Investigate** | Needs further research before deciding |
-   | **Ignore** | Dismiss — excluded from the output entirely |
-   | **Other** | Anything that doesn't fit the above |
+   | **Apply** | Accept the suggested code change as-is |
+   | **Fix** | Address the issue raised (add guidance in the note) |
+   | **Ack** | Acknowledged, no code change needed (informational) |
+   | **Explain** | Ask Claude to explain before acting |
+   | **Defer** | Valid point, but out of scope for this PR |
+   | **Won't fix** | Disagree with the comment — skip intentionally |
+   | **Ignore** | Noise — excluded from the output entirely |
+   | **Other** | Anything else (use the note field) |
 
 5. Add an optional free-text note to any decision for extra context
 6. Select a **commit strategy** at the bottom (Single commit / Grouped by context / One commit per review)
@@ -129,10 +130,13 @@ Expand the **Ignored authors** section to manage which bot accounts are filtered
 ### Decision format in the output
 
 ```
-Human decision: Fix / Use UTC for the base of the date
-Human decision: Explain / Also what happens in this other case…?
-Human decision: Other / This is a false positive, investigate the test suite instead
 Human decision: Apply
+Human decision: Fix / Use UTC for the base of the date
+Human decision: Ack / Already handled in the previous commit
+Human decision: Explain / What happens in this edge case?
+Human decision: Defer / Good point, will address in a follow-up PR
+Human decision: Won't fix / False positive, the test suite covers this
+Human decision: Other / Needs discussion with the team first
 ```
 
 ---
