@@ -18,9 +18,16 @@ This extension gives you a sidebar panel directly on the GitHub PR page. For eac
 
 ## Features
 
-- Scrapes inline diff comments, conversation-level comments, SonarQube/SonarCloud annotations, and GitHub Copilot suggestions
+- Scrapes inline diff comments, conversation-level comments, SonarQube/SonarCloud annotations, GitHub Copilot suggestions, and inline CI annotations
+- Works on both the **Conversation** tab and the React-based **Files changed** / **changes** page
+- Groups threaded comments together — first comment is the main review, replies are shown below
+- Automatically skips resolved comment threads
 - Detects severity/type labels (Nit, Low, Medium, High) from Copilot and Sonar
+- Suggestion diffs displayed with `+`/`-` markers and color-coded lines
 - Sidebar panel with per-review decision picker and free-text annotation
+- **Ignored authors** — configurable list (stored in `localStorage`) to permanently hide bot noise (e.g. `nx-cloud`, `notion-workspace`)
+- **Commit strategy** selector — choose between single commit, grouped by context, or one commit per review
+- **Reset all decisions** button to start over
 - Decisions persist in `sessionStorage` — a page refresh won't wipe your work
 - Reviews marked **Ignore** are dimmed in the UI and excluded from the output
 - Light and dark mode support
@@ -90,8 +97,13 @@ The extension is active until Firefox is closed. Repeat step 4–5 after each re
    | **Other** | Anything that doesn't fit the above |
 
 5. Add an optional free-text note to any decision for extra context
-6. Click **Copy to clipboard**
-7. Paste into Claude
+6. Select a **commit strategy** at the bottom (Single commit / Grouped by context / One commit per review)
+7. Click **Copy to clipboard**
+8. Paste into Claude
+
+### Ignored authors
+
+Expand the **Ignored authors** section to manage which bot accounts are filtered out. Authors in this list are silently excluded from scraping. Defaults: `notion-workspace`, `nx-cloud`, `socket-security`. The list is stored in `localStorage` and persists across sessions.
 
 ### Decision format in the output
 
@@ -111,7 +123,15 @@ The clipboard content is structured Markdown with the following sections:
 ```
 # PR Reviews — human decisions for Claude
 
-[Preamble — instructions for Claude]
+Below are pull request review comments, each with a human decision on how to handle it.
+
+## Instructions
+- **Apply** each decision as stated (Apply, Fix, Explain, etc.)
+- **Ask** for clarification if any information is missing before making changes
+- **Plan first**: list all actions you will take, then wait for confirmation
+- **Track progress**: update the TODO list as you complete each item
+
+**Commit strategy: Grouped by context** — Group related changes into logical commits. ...
 
 ## PR metadata
 - URL
@@ -125,8 +145,9 @@ The clipboard content is structured Markdown with the following sections:
 - Lines
 - Author
 - Type (Nit / Low / Medium / High)
-- Suggested change (if present)
+- Suggested change (```diff block with +/- markers)
 - Comment
+- Replies (if threaded)
 - Human decision
 ```
 
@@ -136,11 +157,15 @@ See [`docs/output_example.md`](./docs/output_example.md) for a full example.
 
 ## Supported review sources
 
-| Source | How it's detected |
-|---|---|
-| GitHub manual reviews | Inline diff comment threads and conversation comments |
-| GitHub Copilot | Severity label elements + comment text prefix |
-| SonarQube / SonarCloud | `data-sonar-issue` / `data-severity` attributes + `.sonar-review-comment` class |
+| Source | Page | How it's detected |
+|---|---|---|
+| GitHub manual reviews | Conversation | `.review-comment` inside `.review-thread-component` threads |
+| GitHub manual reviews | Files changed | `[data-testid="review-thread"]` with `[data-first-thread-comment]` |
+| GitHub Copilot | Both | Same as manual reviews + severity label elements / comment text prefix |
+| SonarQube / SonarCloud | Conversation | `[data-sonar-issue]` / `.sonar-review-comment` |
+| SonarCloud / CI annotations | Files changed | `[data-testid^="annotation-"]` / `[class*="InlineAnnotation-module"]` |
+
+Resolved threads are automatically excluded on both pages (`data-resolved="true"` on Conversation, "Resolved" label / "Unresolve" button on Files changed).
 
 > **Note:** GitHub's DOM is not a public API. If GitHub ships a major UI redesign, the selectors in `content_script.js` may need updating. The scraping logic is intentionally isolated in clearly marked sections to make patching straightforward.
 
@@ -165,9 +190,15 @@ pr-review-collector/
 
 The most useful contributions are updates to the scraping selectors when GitHub or SonarQube changes their DOM. When submitting a fix:
 
-- Identify which section of `content_script.js` is affected (`extractInlineComment`, `extractConversationComment`, or `extractSonarComment`)
+- Identify which extractor function is affected:
+  - `extractInlineComment` / `extractReply` — Conversation tab threads
+  - `extractChangesPageComment` / `extractChangesPageReply` — Files changed page threads
+  - `extractConversationComment` — PR-level conversation comments
+  - `extractSonarComment` — Classic SonarQube annotations
+  - `extractInlineAnnotation` — CI check annotations on Files changed page
 - Include the old and new selectors in your PR description
 - Test on both the **Files changed** and **Conversation** tabs
+- Note: the Files changed page uses `content-visibility: auto`, so always use `textContent` instead of `innerText` for elements that may be off-screen
 
 ---
 
