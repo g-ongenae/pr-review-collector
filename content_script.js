@@ -86,30 +86,18 @@
       }
     }
 
-    // Suggested change block — extract diff with +/- markers
+    // Suggested change block
     let suggestion = '';
-    const suggestContainer = el.querySelector('.js-suggested-changes-container') || el.querySelector('.js-suggested-changes-blob');
-    if (suggestContainer) {
-      suggestion = extractSuggestionDiff(suggestContainer);
+    const suggestBlob = el.querySelector('.js-suggested-changes-blob');
+    if (suggestBlob) {
+      suggestion = extractSuggestionDiff(suggestBlob);
     }
 
-    // Extract comment text, stripping suggestion blocks and UI artifacts
+    // Extract comment text, stripping the suggestion blob (which contains
+    // the diff table, "Suggested change" header, and action buttons)
     const cleanBody = body.cloneNode(true);
-    // Remove suggestion containers, buttons, and interactive elements
-    cleanBody.querySelectorAll([
-      '.js-suggested-changes-container', '.js-suggested-changes-blob',
-      '.suggested-changes-container', '.blob-wrapper',
-      '.js-comment-edit-button', '.review-simple-reply-button',
-      'button', '.btn', '[data-hotkey]', '[role="button"]',
-      '.suggested-changes-header', '.js-suggestion-diff-header'
-    ].join(', ')).forEach(n => n.remove());
-    let commentText = cleanBody.innerText.trim();
-    // Strip any remaining GitHub suggestion UI noise via text cleanup
-    commentText = commentText
-      .replace(/^Suggested change\s*/gim, '')
-      .replace(/^Commit suggestion\s*/gim, '')
-      .replace(/^Add suggestion to batch\s*/gim, '')
-      .trim();
+    cleanBody.querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container').forEach(n => n.remove());
+    const commentText = cleanBody.innerText.trim();
     if (!commentText) return null;
 
     // Severity type heuristics (SonarQube / Copilot label tags)
@@ -118,42 +106,26 @@
     return { file, lines: linesText, author, type, comment: commentText, suggestion, decision: '', note: '' };
   }
 
-  // Extract suggestion diff with +/- markers from GitHub's suggestion container
-  function extractSuggestionDiff(container) {
+  // Extract suggestion diff with +/- markers from GitHub's suggestion blob.
+  // GitHub renders suggestions as a table where:
+  //   - Deletion <td> has classes: blob-code-deletion js-blob-code-deletion
+  //   - Addition <td> has classes: blob-code-addition js-blob-code-addition
+  function extractSuggestionDiff(blob) {
     const lines = [];
+    const deletions = blob.querySelectorAll('td.blob-code-deletion');
+    const additions = blob.querySelectorAll('td.blob-code-addition');
 
-    // GitHub renders suggestion diffs as table rows with background colors.
-    // Try multiple selector strategies to find deletion/addition rows.
-    const rows = container.querySelectorAll('tr, .blob-code-inner');
-
-    if (rows.length) {
-      rows.forEach(row => {
-        // Check class names and background styles for deletion/addition markers
-        const cls = row.className || '';
-        const codeEl = row.querySelector('.blob-code-inner') || row;
-        const text = codeEl.innerText;
-        if (!text || !text.trim()) return;
-
-        if (/deletion|removed/i.test(cls) || row.querySelector('.blob-code-deletion')) {
-          lines.push('- ' + text);
-        } else if (/addition|added/i.test(cls) || row.querySelector('.blob-code-addition')) {
-          lines.push('+ ' + text);
-        } else if (/context|unchanged/i.test(cls)) {
-          lines.push('  ' + text);
-        }
-      });
-    }
+    deletions.forEach(td => lines.push('- ' + td.innerText));
+    additions.forEach(td => lines.push('+ ' + td.innerText));
 
     if (lines.length) return lines.join('\n');
 
-    // Fallback: extract raw text and strip UI noise before returning
-    let raw = container.innerText.trim();
-    raw = raw
-      .replace(/^Suggested change\s*/im, '')
-      .replace(/Commit suggestion\s*/im, '')
-      .replace(/Add suggestion to batch\s*/im, '')
-      .trim();
-    return raw;
+    // Fallback: clean the blob text if no structured diff found
+    const clone = blob.cloneNode(true);
+    clone.querySelectorAll('button, .btn, .suggested-change-form-container, [role="button"]').forEach(n => n.remove());
+    const header = clone.querySelector('.f6.border-bottom');
+    if (header) header.remove();
+    return clone.innerText.trim();
   }
 
   // ── Conversation-level comment ───────────────────────────────────────────
