@@ -502,6 +502,14 @@
       </div>
       <div id="prc-list"></div>
       <div id="prc-footer">
+        <div id="prc-commit-strategy">
+          <label for="prc-strategy-select">Commit strategy:</label>
+          <select id="prc-strategy-select">
+            <option value="single">Single commit</option>
+            <option value="grouped" selected>Grouped by context</option>
+            <option value="atomic">One commit per review</option>
+          </select>
+        </div>
         <button id="prc-copy">📋 Copy to clipboard</button>
       </div>
       <div id="prc-toast" class="prc-hidden">Copied!</div>
@@ -595,6 +603,14 @@
     lines.push('For each item, apply the stated decision. Ask for any missing information');
     lines.push('before implementing changes. List all the actions you will take before');
     lines.push('starting, and update the TODO list as you go.');
+    lines.push('');
+    const strategy = document.getElementById('prc-strategy-select')?.value || 'grouped';
+    const strategyInstructions = {
+      single: '**Commit strategy: Single commit** — Apply all changes in one commit.',
+      grouped: '**Commit strategy: Grouped by context** — Group related changes into logical commits. Present your grouping plan and wait for confirmation before starting.',
+      atomic: '**Commit strategy: One commit per review** — Create a separate commit for each review item.',
+    };
+    lines.push(strategyInstructions[strategy]);
     lines.push('');
     lines.push('## PR metadata');
     lines.push('');
