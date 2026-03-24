@@ -258,6 +258,7 @@
     return `
       <div id="prc-header">
         <span id="prc-title">PR Review Collector</span>
+        <button id="prc-reset" title="Reset all decisions">⟲</button>
         <button id="prc-refresh" title="Re-scrape page">↺</button>
         <button id="prc-close" title="Close">✕</button>
       </div>
@@ -445,6 +446,11 @@
   }
 
   // ── Wire up sidebar buttons ───────────────────────────────────────────────
+  document.getElementById('prc-reset').addEventListener('click', () => {
+    sessionStorage.removeItem('prc-decisions');
+    reviews.forEach(r => { r.decision = ''; r.note = ''; });
+    renderList();
+  });
   document.getElementById('prc-close').addEventListener('click', () => sidebar.classList.remove('prc-open'));
   document.getElementById('prc-refresh').addEventListener('click', loadReviews);
 
