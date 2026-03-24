@@ -194,7 +194,9 @@
   // ── PR metadata ───────────────────────────────────────────────────────────
   function getPRMeta() {
     const title = document.querySelector('.js-issue-title, h1.gh-header-title .js-issue-title, .markdown-title')?.innerText.trim() || '';
-    const branch = document.querySelector('.head-ref, .commit-ref:last-child span')?.innerText.trim() || '';
+    // The head branch is the last BranchName element (after "from")
+    const branchEls = document.querySelectorAll('.head-ref, .commit-ref:last-child span, [class*="BranchName-BranchName"]');
+    const branch = branchEls.length ? branchEls[branchEls.length - 1].innerText.trim() : '';
     const url = window.location.href;
     const descEl = document.querySelector('.comment-body .js-comment-body');
     const description = descEl ? descEl.innerText.trim() : '';
