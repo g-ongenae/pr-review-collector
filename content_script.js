@@ -295,17 +295,19 @@
     const deletions = blob.querySelectorAll('td.blob-code-deletion');
     const additions = blob.querySelectorAll('td.blob-code-addition');
 
-    deletions.forEach(td => lines.push('- ' + td.innerText));
-    additions.forEach(td => lines.push('+ ' + td.innerText));
+    // Use textContent instead of innerText — innerText returns empty strings
+    // when content-visibility:auto hides off-screen elements on the changes page.
+    deletions.forEach(td => lines.push('- ' + (td.textContent || '').trim()));
+    additions.forEach(td => lines.push('+ ' + (td.textContent || '').trim()));
 
     if (lines.length) return lines.join('\n');
 
     // Fallback: clean the blob text if no structured diff found
     const clone = blob.cloneNode(true);
-    clone.querySelectorAll('button, .btn, .suggested-change-form-container, [role="button"]').forEach(n => n.remove());
+    clone.querySelectorAll('button, .btn, .suggested-change-form-container, .js-apply-changes, [role="button"]').forEach(n => n.remove());
     const header = clone.querySelector('.f6.border-bottom');
     if (header) header.remove();
-    return clone.innerText.trim();
+    return (clone.textContent || '').trim();
   }
 
   // ── Conversation-level comment ───────────────────────────────────────────
