@@ -1,0 +1,21 @@
+{
+  "name": "pr-review-collector",
+  "version": "1.0.0",
+  "description": "A browser extension that scrapes review comments from GitHub Pull Requests, lets you assign a human decision to each one, and copies a structured prompt for Claude.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --no-warn-ignored *.js",
+    "lint:fix": "eslint --no-warn-ignored *.js --fix",
+    "format": "prettier --write '*.{js,json,css,html,md}'",
+    "format:check": "prettier --check '*.{js,json,css,html,md}'",
+    "check": "npm run lint && npm run format:check"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.1.0",
+    "globals": "^17.4.0",
+    "prettier": "^3.8.1"
+  }
+}

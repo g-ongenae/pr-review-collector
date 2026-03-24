@@ -1,70 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      width: 320px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 13px;
-      color: #1f2328;
-      padding: 16px;
-    }
-    h1 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-    .version { font-size: 11px; color: #57606a; margin-bottom: 12px; }
-    .description { line-height: 1.5; margin-bottom: 14px; color: #1f2328; }
-    .section { margin-bottom: 12px; }
-    .section-title { font-size: 11px; font-weight: 600; color: #57606a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .usage-steps { padding-left: 18px; line-height: 1.7; color: #1f2328; }
-    .usage-steps li { margin-bottom: 2px; }
-    .shortcut { display: inline-block; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 4px; padding: 0 5px; font-size: 11px; font-family: ui-monospace, monospace; }
-    .links { display: flex; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #d0d7de; }
-    .links a {
-      font-size: 12px;
-      color: #0969da;
-      text-decoration: none;
-    }
-    .links a:hover { text-decoration: underline; }
-    .status { font-size: 11px; color: #57606a; margin-top: 10px; padding: 6px 8px; background: #f6f8fa; border-radius: 6px; }
-    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
-    .status-dot.active { background: #2da44e; }
-    .status-dot.inactive { background: #cf222e; }
-  </style>
-</head>
-<body>
-  <h1>PR Review Collector</h1>
-  <div class="version" id="version"></div>
-  <div class="description">
-    Scrape PR review comments from GitHub, assign a human decision to each one, and copy a structured prompt for Claude.
-  </div>
-
-  <div class="section">
-    <div class="section-title">Quick start</div>
-    <ol class="usage-steps">
-      <li>Open a GitHub Pull Request</li>
-      <li>Click the <span class="shortcut">📋</span> button (bottom-right)</li>
-      <li>Pick a decision for each comment</li>
-      <li>Choose a commit strategy</li>
-      <li>Click <strong>Copy to clipboard</strong></li>
-      <li>Paste into Claude</li>
-    </ol>
-  </div>
-
-  <div class="section">
-    <div class="section-title">Decisions</div>
-    <div style="line-height: 1.7;">
-      <strong>Apply</strong> · <strong>Fix</strong> · <strong>Ack</strong> · <strong>Explain</strong> · <strong>Defer</strong> · <strong>Won't fix</strong> · <strong>Ignore</strong> · <strong>Other</strong>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: 320px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 13px;
+        color: #1f2328;
+        padding: 16px;
+      }
+      h1 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .version {
+        font-size: 11px;
+        color: #57606a;
+        margin-bottom: 12px;
+      }
+      .description {
+        line-height: 1.5;
+        margin-bottom: 14px;
+        color: #1f2328;
+      }
+      .section {
+        margin-bottom: 12px;
+      }
+      .section-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #57606a;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+      }
+      .usage-steps {
+        padding-left: 18px;
+        line-height: 1.7;
+        color: #1f2328;
+      }
+      .usage-steps li {
+        margin-bottom: 2px;
+      }
+      .shortcut {
+        display: inline-block;
+        background: #f6f8fa;
+        border: 1px solid #d0d7de;
+        border-radius: 4px;
+        padding: 0 5px;
+        font-size: 11px;
+        font-family: ui-monospace, monospace;
+      }
+      .links {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #d0d7de;
+      }
+      .links a {
+        font-size: 12px;
+        color: #0969da;
+        text-decoration: none;
+      }
+      .links a:hover {
+        text-decoration: underline;
+      }
+      .status {
+        font-size: 11px;
+        color: #57606a;
+        margin-top: 10px;
+        padding: 6px 8px;
+        background: #f6f8fa;
+        border-radius: 6px;
+      }
+      .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+      .status-dot.active {
+        background: #2da44e;
+      }
+      .status-dot.inactive {
+        background: #cf222e;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PR Review Collector</h1>
+    <div class="version" id="version"></div>
+    <div class="description">
+      Scrape PR review comments from GitHub, assign a human decision to each one, and copy a structured prompt for
+      Claude.
     </div>
-  </div>
 
-  <div class="status" id="status"></div>
+    <div class="section">
+      <div class="section-title">Quick start</div>
+      <ol class="usage-steps">
+        <li>Open a GitHub Pull Request</li>
+        <li>Click the <span class="shortcut">📋</span> button (bottom-right)</li>
+        <li>Pick a decision for each comment</li>
+        <li>Choose a commit strategy</li>
+        <li>Click <strong>Copy to clipboard</strong></li>
+        <li>Paste into Claude</li>
+      </ol>
+    </div>
 
-  <div class="links">
-    <a href="https://github.com/g-ongenae/pr-review-collector" target="_blank">Source code</a>
-    <a href="https://github.com/g-ongenae/pr-review-collector/issues" target="_blank">Report an issue</a>
-  </div>
+    <div class="section">
+      <div class="section-title">Decisions</div>
+      <div style="line-height: 1.7">
+        <strong>Apply</strong> · <strong>Fix</strong> · <strong>Ack</strong> · <strong>Explain</strong> ·
+        <strong>Defer</strong> · <strong>Won't fix</strong> · <strong>Ignore</strong> · <strong>Other</strong>
+      </div>
+    </div>
 
-  <script src="popup.js"></script>
-</body>
+    <div class="status" id="status"></div>
+
+    <div class="links">
+      <a href="https://github.com/g-ongenae/pr-review-collector" target="_blank">Source code</a>
+      <a href="https://github.com/g-ongenae/pr-review-collector/issues" target="_blank">Report an issue</a>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
 </html>

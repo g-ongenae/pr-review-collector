@@ -57,10 +57,10 @@ Permissions required: `activeTab` · `clipboardWrite` · `storage`
 
 The extension ships two manifest files — pick the one for your browser:
 
-| File | Browser | Manifest version |
-|---|---|---|
-| `manifest.firefox.json` | Firefox | V2 |
-| `manifest.chrome.json` | Chrome / Edge / Brave | V3 |
+| File                    | Browser               | Manifest version |
+| ----------------------- | --------------------- | ---------------- |
+| `manifest.firefox.json` | Firefox               | V2               |
+| `manifest.chrome.json`  | Chrome / Edge / Brave | V3               |
 
 Before loading, copy the right one to `manifest.json`:
 
@@ -107,16 +107,16 @@ The extension is active until Firefox is closed. Repeat step 4–5 after each re
 3. The sidebar opens and scrapes all visible review comments
 4. For each comment, pick a decision from the dropdown:
 
-   | Decision | When to use |
-   |---|---|
-   | **Apply** | Accept the suggested code change as-is |
-   | **Fix** | Address the issue raised (add guidance in the note) |
-   | **Ack** | Acknowledged, no code change needed (informational) |
-   | **Explain** | Ask Claude to explain before acting |
-   | **Defer** | Valid point, but out of scope for this PR |
-   | **Won't fix** | Disagree with the comment — skip intentionally |
-   | **Ignore** | Noise — excluded from the output entirely |
-   | **Other** | Anything else (use the note field) |
+   | Decision      | When to use                                         |
+   | ------------- | --------------------------------------------------- |
+   | **Apply**     | Accept the suggested code change as-is              |
+   | **Fix**       | Address the issue raised (add guidance in the note) |
+   | **Ack**       | Acknowledged, no code change needed (informational) |
+   | **Explain**   | Ask Claude to explain before acting                 |
+   | **Defer**     | Valid point, but out of scope for this PR           |
+   | **Won't fix** | Disagree with the comment — skip intentionally      |
+   | **Ignore**    | Noise — excluded from the output entirely           |
+   | **Other**     | Anything else (use the note field)                  |
 
 5. Add an optional free-text note to any decision for extra context
 6. Select a **commit strategy** at the bottom (Single commit / Grouped by context / One commit per review)
@@ -145,7 +145,7 @@ Human decision: Other / Needs discussion with the team first
 
 The clipboard content is structured Markdown with the following sections:
 
-```
+````
 # PR Reviews — human decisions for Claude
 
 Below are pull request review comments, each with a human decision on how to handle it.
@@ -174,7 +174,7 @@ Below are pull request review comments, each with a human decision on how to han
 - Comment
 - Replies (if threaded)
 - Human decision
-```
+````
 
 See [`docs/output_example.md`](./docs/output_example.md) for a full example.
 
@@ -182,13 +182,13 @@ See [`docs/output_example.md`](./docs/output_example.md) for a full example.
 
 ## Supported review sources
 
-| Source | Page | How it's detected |
-|---|---|---|
-| GitHub manual reviews | Conversation | `.review-comment` inside `.review-thread-component` threads |
-| GitHub manual reviews | Files changed | `[data-testid="review-thread"]` with `[data-first-thread-comment]` |
-| GitHub Copilot | Both | Same as manual reviews + severity label elements / comment text prefix |
-| SonarQube / SonarCloud | Conversation | `[data-sonar-issue]` / `.sonar-review-comment` |
-| SonarCloud / CI annotations | Files changed | `[data-testid^="annotation-"]` / `[class*="InlineAnnotation-module"]` |
+| Source                      | Page          | How it's detected                                                      |
+| --------------------------- | ------------- | ---------------------------------------------------------------------- |
+| GitHub manual reviews       | Conversation  | `.review-comment` inside `.review-thread-component` threads            |
+| GitHub manual reviews       | Files changed | `[data-testid="review-thread"]` with `[data-first-thread-comment]`     |
+| GitHub Copilot              | Both          | Same as manual reviews + severity label elements / comment text prefix |
+| SonarQube / SonarCloud      | Conversation  | `[data-sonar-issue]` / `.sonar-review-comment`                         |
+| SonarCloud / CI annotations | Files changed | `[data-testid^="annotation-"]` / `[class*="InlineAnnotation-module"]`  |
 
 Resolved threads are automatically excluded on both pages (`data-resolved="true"` on Conversation, "Resolved" label / "Unresolve" button on Files changed).
 

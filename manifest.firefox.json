@@ -3,12 +3,7 @@
   "name": "PR Review Collector",
   "version": "1.0.0",
   "description": "Collect GitHub PR review comments and assign human decisions for Claude.",
-  "permissions": [
-    "activeTab",
-    "clipboardWrite",
-    "storage",
-    "<all_urls>"
-  ],
+  "permissions": ["activeTab", "clipboardWrite", "storage", "<all_urls>"],
   "content_scripts": [
     {
       "matches": ["https://github.com/*/pull/*"],

@@ -38,7 +38,7 @@
   }
 
   function isIgnoredAuthor(author) {
-    return getIgnoredAuthors().some(a => a.toLowerCase() === (author || '').toLowerCase());
+    return getIgnoredAuthors().some((a) => a.toLowerCase() === (author || '').toLowerCase());
   }
 
   // ── Review scraping ──────────────────────────────────────────────────────
@@ -47,28 +47,30 @@
 
     // ── 1. Review threads (groups linked comments together) ──────────────
     const processedThreads = new Set();
-    document.querySelectorAll('.review-thread-component, .js-resolvable-timeline-thread-container').forEach(thread => {
-      if (processedThreads.has(thread)) return;
-      processedThreads.add(thread);
-      // Skip resolved threads (conversation page)
-      if (thread.getAttribute('data-resolved') === 'true') return;
-      const commentEls = thread.querySelectorAll('.review-comment');
-      if (!commentEls.length) return;
-      // First comment is the main review
-      const main = extractInlineComment(commentEls[0]);
-      if (!main || isNoiseComment(main) || isIgnoredAuthor(main.author)) return;
-      // Remaining comments are replies
-      main.replies = [];
-      for (let i = 1; i < commentEls.length; i++) {
-        const reply = extractReply(commentEls[i]);
-        if (reply && !isNoiseComment(reply) && !isIgnoredAuthor(reply.author)) {
-          main.replies.push(reply);
+    document
+      .querySelectorAll('.review-thread-component, .js-resolvable-timeline-thread-container')
+      .forEach((thread) => {
+        if (processedThreads.has(thread)) return;
+        processedThreads.add(thread);
+        // Skip resolved threads (conversation page)
+        if (thread.getAttribute('data-resolved') === 'true') return;
+        const commentEls = thread.querySelectorAll('.review-comment');
+        if (!commentEls.length) return;
+        // First comment is the main review
+        const main = extractInlineComment(commentEls[0]);
+        if (!main || isNoiseComment(main) || isIgnoredAuthor(main.author)) return;
+        // Remaining comments are replies
+        main.replies = [];
+        for (let i = 1; i < commentEls.length; i++) {
+          const reply = extractReply(commentEls[i]);
+          if (reply && !isNoiseComment(reply) && !isIgnoredAuthor(reply.author)) {
+            main.replies.push(reply);
+          }
         }
-      }
-      reviews.push(main);
-    });
+        reviews.push(main);
+      });
     // Catch any orphan .review-comment not inside a thread container
-    document.querySelectorAll('.review-comment').forEach(el => {
+    document.querySelectorAll('.review-comment').forEach((el) => {
       if (el.closest('.review-thread-component, .js-resolvable-timeline-thread-container')) return;
       const comment = extractInlineComment(el);
       if (comment && !isNoiseComment(comment) && !isIgnoredAuthor(comment.author)) {
@@ -78,14 +80,14 @@
     });
 
     // ── 2. React-based "Files changed" / "changes" page ────────────────────
-    document.querySelectorAll('[data-testid="review-thread"]').forEach(thread => {
+    document.querySelectorAll('[data-testid="review-thread"]').forEach((thread) => {
       // Skip resolved threads on changes page
       if (isResolvedChangesThread(thread)) return;
       const main = extractChangesPageComment(thread);
       if (!main || isNoiseComment(main) || isIgnoredAuthor(main.author)) return;
       main.replies = [];
       // Replies are [data-first-thread-comment="false"]
-      thread.querySelectorAll('[data-first-thread-comment="false"]').forEach(replyEl => {
+      thread.querySelectorAll('[data-first-thread-comment="false"]').forEach((replyEl) => {
         const reply = extractChangesPageReply(replyEl);
         if (reply && !isNoiseComment(reply) && !isIgnoredAuthor(reply.author)) {
           main.replies.push(reply);
@@ -95,7 +97,7 @@
     });
 
     // ── 3. PR-level review comments (conversation tab) ────────────────────
-    document.querySelectorAll('.comment-body').forEach(el => {
+    document.querySelectorAll('.comment-body').forEach((el) => {
       const wrapper = el.closest('.js-timeline-item, .timeline-comment-wrapper');
       if (!wrapper) return;
       // Skip if already captured as inline review comment
@@ -105,20 +107,20 @@
     });
 
     // ── 4. SonarQube / SonarCloud annotations (classic DOM) ──────────────
-    document.querySelectorAll('[data-sonar-issue], .sonar-review-comment').forEach(el => {
+    document.querySelectorAll('[data-sonar-issue], .sonar-review-comment').forEach((el) => {
       const c = extractSonarComment(el);
       if (c) reviews.push(c);
     });
 
     // ── 5. Inline annotations on changes page (SonarCloud, CI checks, etc.)
-    document.querySelectorAll('[data-testid^="annotation-"], [class*="InlineAnnotation-module"]').forEach(el => {
+    document.querySelectorAll('[data-testid^="annotation-"], [class*="InlineAnnotation-module"]').forEach((el) => {
       const c = extractInlineAnnotation(el);
       if (c && !isIgnoredAuthor(c.author)) reviews.push(c);
     });
 
     // Deduplicate by a rough key
     const seen = new Set();
-    return reviews.filter(r => {
+    return reviews.filter((r) => {
       const key = `${r.author}|${r.comment.slice(0, 60)}`;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -138,8 +140,8 @@
     let file = '';
     let linesText = '';
     // Strategy 1: hidden input[name="path"] in the suggestion commit form (most reliable)
-    const pathInput = el.querySelector('input[name="path"]')
-      || el.closest('.js-line-comments')?.querySelector('input[name="path"]');
+    const pathInput =
+      el.querySelector('input[name="path"]') || el.closest('.js-line-comments')?.querySelector('input[name="path"]');
     if (pathInput) {
       file = pathInput.value;
     }
@@ -166,7 +168,9 @@
     if (reviewThread) {
       const lineNumCells = reviewThread.querySelectorAll('.blob-num[data-line-number]');
       if (lineNumCells.length) {
-        const nums = Array.from(lineNumCells).map(td => td.dataset.lineNumber).filter(Boolean);
+        const nums = Array.from(lineNumCells)
+          .map((td) => td.dataset.lineNumber)
+          .filter(Boolean);
         const first = nums[0];
         const last = nums[nums.length - 1];
         linesText = first === last ? `L${first}` : `L${first}-L${last}`;
@@ -195,14 +199,26 @@
     // Extract comment text, stripping the suggestion blob (which contains
     // the diff table, "Suggested change" header, and action buttons)
     const cleanBody = body.cloneNode(true);
-    cleanBody.querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container').forEach(n => n.remove());
+    cleanBody
+      .querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container')
+      .forEach((n) => n.remove());
     const commentText = cleanBody.innerText.trim();
     if (!commentText) return null;
 
     // Severity type heuristics (SonarQube / Copilot label tags)
     const type = detectType(el, commentText);
 
-    return { file, lines: linesText, author, type, comment: commentText, suggestion, replies: [], decision: '', note: '' };
+    return {
+      file,
+      lines: linesText,
+      author,
+      type,
+      comment: commentText,
+      suggestion,
+      replies: [],
+      decision: '',
+      note: '',
+    };
   }
 
   // Extract a reply comment (lightweight — just author + text)
@@ -212,7 +228,9 @@
     const authorEl = el.querySelector('.author');
     const author = authorEl ? authorEl.innerText.trim() : 'unknown';
     const cleanBody = body.cloneNode(true);
-    cleanBody.querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container').forEach(n => n.remove());
+    cleanBody
+      .querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container')
+      .forEach((n) => n.remove());
     const comment = cleanBody.innerText.trim();
     if (!comment) return null;
     return { author, comment };
@@ -257,8 +275,10 @@
 
     const cleanBody = bodyEl.cloneNode(true);
     // Strip suggestion blob, "Copilot uses AI" noise, and action buttons
-    cleanBody.querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container, .js-apply-changes').forEach(n => n.remove());
-    cleanBody.querySelectorAll('p.text-small.color-fg-muted').forEach(n => n.remove());
+    cleanBody
+      .querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container, .js-apply-changes')
+      .forEach((n) => n.remove());
+    cleanBody.querySelectorAll('p.text-small.color-fg-muted').forEach((n) => n.remove());
     const commentText = cleanBody.innerText.trim();
     if (!commentText) return null;
 
@@ -300,7 +320,17 @@
     }
 
     const type = detectType(firstComment, commentText);
-    return { file, lines: linesText, author, type, comment: commentText, suggestion, replies: [], decision: '', note: '' };
+    return {
+      file,
+      lines: linesText,
+      author,
+      type,
+      comment: commentText,
+      suggestion,
+      replies: [],
+      decision: '',
+      note: '',
+    };
   }
 
   function extractChangesPageReply(el) {
@@ -324,14 +354,16 @@
 
     // Use textContent instead of innerText — innerText returns empty strings
     // when content-visibility:auto hides off-screen elements on the changes page.
-    deletions.forEach(td => lines.push('- ' + (td.textContent || '').trim()));
-    additions.forEach(td => lines.push('+ ' + (td.textContent || '').trim()));
+    deletions.forEach((td) => lines.push('- ' + (td.textContent || '').trim()));
+    additions.forEach((td) => lines.push('+ ' + (td.textContent || '').trim()));
 
     if (lines.length) return lines.join('\n');
 
     // Fallback: clean the blob text if no structured diff found
     const clone = blob.cloneNode(true);
-    clone.querySelectorAll('button, .btn, .suggested-change-form-container, .js-apply-changes, [role="button"]').forEach(n => n.remove());
+    clone
+      .querySelectorAll('button, .btn, .suggested-change-form-container, .js-apply-changes, [role="button"]')
+      .forEach((n) => n.remove());
     const header = clone.querySelector('.f6.border-bottom');
     if (header) header.remove();
     return (clone.textContent || '').trim();
@@ -366,7 +398,7 @@
       suggestion: '',
       replies: [],
       decision: '',
-      note: ''
+      note: '',
     };
   }
 
@@ -436,21 +468,25 @@
   }
 
   // ── Noise filter — skip GitHub UI artefacts that aren't real comments ─
-  const NOISE_PATTERNS = /^(preview|nothing to preview|write|leave a comment|add a comment|add your comment|comment|cancel|submit|close issue|close pull request|update comment)$/i;
+  const NOISE_PATTERNS =
+    /^(preview|nothing to preview|write|leave a comment|add a comment|add your comment|comment|cancel|submit|close issue|close pull request|update comment)$/i;
 
   function isNoiseComment(r) {
     const text = r.comment.trim();
     // Filter out short UI-text artefacts, especially from unknown authors
     if (NOISE_PATTERNS.test(text)) return true;
     // Multi-token noise: lines that are only GitHub tab/button labels
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    if (lines.length <= 3 && lines.every(l => NOISE_PATTERNS.test(l))) return true;
+    const lines = text
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (lines.length <= 3 && lines.every((l) => NOISE_PATTERNS.test(l))) return true;
     return false;
   }
 
   // ── Type detection helpers ────────────────────────────────────────────────
   function detectType(el, text) {
-    const label = el.querySelector('.Label, .label, [data-severity], .severity') ;
+    const label = el.querySelector('.Label, .label, [data-severity], .severity');
     if (label) {
       const t = label.innerText.trim();
       return normalizeSeverity(t);
@@ -462,15 +498,30 @@
   }
 
   function normalizeSeverity(raw) {
-    const map = { critical: 'High', major: 'Medium', minor: 'Low', info: 'Nit', suggestion: 'Nit', nit: 'Nit', low: 'Low', medium: 'Medium', high: 'High' };
+    const map = {
+      critical: 'High',
+      major: 'Medium',
+      minor: 'Low',
+      info: 'Nit',
+      suggestion: 'Nit',
+      nit: 'Nit',
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+    };
     return map[(raw || '').toLowerCase()] || raw || '';
   }
 
   // ── PR metadata ───────────────────────────────────────────────────────────
   function getPRMeta() {
-    const title = document.querySelector('.js-issue-title, h1.gh-header-title .js-issue-title, .markdown-title')?.innerText.trim() || '';
+    const title =
+      document
+        .querySelector('.js-issue-title, h1.gh-header-title .js-issue-title, .markdown-title')
+        ?.innerText.trim() || '';
     // The head branch is the last BranchName element (after "from")
-    const branchEls = document.querySelectorAll('.head-ref, .commit-ref:last-child span, [class*="BranchName-BranchName"]');
+    const branchEls = document.querySelectorAll(
+      '.head-ref, .commit-ref:last-child span, [class*="BranchName-BranchName"]',
+    );
     const branch = branchEls.length ? branchEls[branchEls.length - 1].innerText.trim() : '';
     const url = window.location.href;
     const descEl = document.querySelector('.comment-body .js-comment-body');
@@ -524,7 +575,10 @@
     // Restore saved decisions from session storage
     const saved = JSON.parse(sessionStorage.getItem('prc-decisions') || '{}');
     reviews.forEach((r, i) => {
-      if (saved[i]) { r.decision = saved[i].decision; r.note = saved[i].note; }
+      if (saved[i]) {
+        r.decision = saved[i].decision;
+        r.note = saved[i].note;
+      }
     });
     renderMeta();
     renderList();
@@ -543,21 +597,24 @@
   function renderList() {
     const list = document.getElementById('prc-list');
     if (!reviews.length) {
-      list.innerHTML = '<p class="prc-empty">No review comments found on this page.<br>Make sure you\'re on the "Files changed" or "Conversation" tab.</p>';
+      list.innerHTML =
+        '<p class="prc-empty">No review comments found on this page.<br>Make sure you\'re on the "Files changed" or "Conversation" tab.</p>';
       return;
     }
     list.innerHTML = reviews.map((r, i) => renderCard(r, i)).join('');
-    list.querySelectorAll('.prc-decision-select').forEach(sel => {
-      sel.addEventListener('change', e => updateDecision(+e.target.dataset.idx, 'decision', e.target.value));
+    list.querySelectorAll('.prc-decision-select').forEach((sel) => {
+      sel.addEventListener('change', (e) => updateDecision(+e.target.dataset.idx, 'decision', e.target.value));
     });
-    list.querySelectorAll('.prc-note-input').forEach(inp => {
-      inp.addEventListener('input', e => updateDecision(+e.target.dataset.idx, 'note', e.target.value));
+    list.querySelectorAll('.prc-note-input').forEach((inp) => {
+      inp.addEventListener('input', (e) => updateDecision(+e.target.dataset.idx, 'note', e.target.value));
     });
   }
 
   function renderCard(r, i) {
     const DECISIONS = ['', 'Apply', 'Fix', 'Ack', 'Explain', 'Defer', "Won't fix", 'Ignore', 'Other'];
-    const opts = DECISIONS.map(d => `<option value="${d}" ${r.decision === d ? 'selected' : ''}>${d || '— pick decision —'}</option>`).join('');
+    const opts = DECISIONS.map(
+      (d) => `<option value="${d}" ${r.decision === d ? 'selected' : ''}>${d || '— pick decision —'}</option>`,
+    ).join('');
     const ignClass = r.decision === 'Ignore' ? ' prc-card-ignored' : '';
     return `
       <div class="prc-card${ignClass}" data-idx="${i}">
@@ -569,9 +626,16 @@
         </div>
         <div class="prc-comment">${escHtml(r.comment)}</div>
         ${r.suggestion ? `<div class="prc-suggestion"><em>Suggested change:</em><pre>${formatSuggestionHtml(r.suggestion)}</pre></div>` : ''}
-        ${r.replies && r.replies.length ? `<div class="prc-replies">${r.replies.map(rp =>
-          `<div class="prc-reply"><span class="prc-reply-author">${escHtml(rp.author)}:</span> ${escHtml(rp.comment)}</div>`
-        ).join('')}</div>` : ''}
+        ${
+          r.replies && r.replies.length
+            ? `<div class="prc-replies">${r.replies
+                .map(
+                  (rp) =>
+                    `<div class="prc-reply"><span class="prc-reply-author">${escHtml(rp.author)}:</span> ${escHtml(rp.comment)}</div>`,
+                )
+                .join('')}</div>`
+            : ''
+        }
         <div class="prc-decision-row">
           <select class="prc-decision-select" data-idx="${i}">${opts}</select>
           <input class="prc-note-input" data-idx="${i}" type="text" placeholder="Optional note…" value="${escHtml(r.note)}">
@@ -594,7 +658,7 @@
   // ── Output builder ────────────────────────────────────────────────────────
   function buildOutput() {
     const meta = getPRMeta();
-    const active = reviews.filter(r => r.decision && r.decision !== 'Ignore');
+    const active = reviews.filter((r) => r.decision && r.decision !== 'Ignore');
 
     const lines = [];
     lines.push('# PR Reviews — human decisions for Claude');
@@ -611,7 +675,8 @@
     const strategy = document.getElementById('prc-strategy-select')?.value || 'grouped';
     const strategyInstructions = {
       single: '**Commit strategy: Single commit** — Apply all changes in one commit.',
-      grouped: '**Commit strategy: Grouped by context** — Group related changes into logical commits. Present your grouping plan and wait for confirmation before starting.',
+      grouped:
+        '**Commit strategy: Grouped by context** — Group related changes into logical commits. Present your grouping plan and wait for confirmation before starting.',
       atomic: '**Commit strategy: One commit per review** — Create a separate commit for each review item.',
     };
     lines.push(strategyInstructions[strategy]);
@@ -634,21 +699,21 @@
       active.forEach((r, i) => {
         lines.push(`### Review ${i + 1}`);
         lines.push('');
-        if (r.file)  lines.push(`- **File**: \`${r.file}\``);
+        if (r.file) lines.push(`- **File**: \`${r.file}\``);
         if (r.lines) lines.push(`- **Lines**: ${r.lines}`);
         if (r.author) lines.push(`- **Author**: ${r.author}`);
-        if (r.type)  lines.push(`- **Type**: ${r.type}`);
+        if (r.type) lines.push(`- **Type**: ${r.type}`);
         if (r.suggestion) {
           lines.push('- **Suggested change**:');
           lines.push('  ```diff');
-          r.suggestion.split('\n').forEach(l => lines.push('  ' + l));
+          r.suggestion.split('\n').forEach((l) => lines.push('  ' + l));
           lines.push('  ```');
         }
         lines.push('- **Comment**:');
-        r.comment.split('\n').forEach(l => lines.push('  > ' + l));
+        r.comment.split('\n').forEach((l) => lines.push('  > ' + l));
         if (r.replies && r.replies.length) {
           lines.push('- **Replies**:');
-          r.replies.forEach(rp => {
+          r.replies.forEach((rp) => {
             lines.push(`  > **${rp.author}**: ${rp.comment.split('\n').join(' ')}`);
           });
         }
@@ -665,12 +730,15 @@
   function renderIgnoredAuthors() {
     const list = document.getElementById('prc-ignored-list');
     const authors = getIgnoredAuthors();
-    list.innerHTML = authors.map(a =>
-      `<span class="prc-ignored-tag">${escHtml(a)}<button class="prc-ignored-remove" data-author="${escHtml(a)}">✕</button></span>`
-    ).join('');
-    list.querySelectorAll('.prc-ignored-remove').forEach(btn => {
+    list.innerHTML = authors
+      .map(
+        (a) =>
+          `<span class="prc-ignored-tag">${escHtml(a)}<button class="prc-ignored-remove" data-author="${escHtml(a)}">✕</button></span>`,
+      )
+      .join('');
+    list.querySelectorAll('.prc-ignored-remove').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const updated = getIgnoredAuthors().filter(x => x.toLowerCase() !== btn.dataset.author.toLowerCase());
+        const updated = getIgnoredAuthors().filter((x) => x.toLowerCase() !== btn.dataset.author.toLowerCase());
         saveIgnoredAuthors(updated);
         renderIgnoredAuthors();
         loadReviews();
@@ -681,7 +749,7 @@
   renderIgnoredAuthors();
 
   document.getElementById('prc-ignored-add-btn').addEventListener('click', addIgnoredAuthor);
-  document.getElementById('prc-ignored-input').addEventListener('keydown', e => {
+  document.getElementById('prc-ignored-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') addIgnoredAuthor();
   });
 
@@ -690,7 +758,7 @@
     const name = input.value.trim();
     if (!name) return;
     const authors = getIgnoredAuthors();
-    if (!authors.some(a => a.toLowerCase() === name.toLowerCase())) {
+    if (!authors.some((a) => a.toLowerCase() === name.toLowerCase())) {
       authors.push(name);
       saveIgnoredAuthors(authors);
       renderIgnoredAuthors();
@@ -702,7 +770,10 @@
   // ── Wire up sidebar buttons ───────────────────────────────────────────────
   document.getElementById('prc-reset').addEventListener('click', () => {
     sessionStorage.removeItem('prc-decisions');
-    reviews.forEach(r => { r.decision = ''; r.note = ''; });
+    reviews.forEach((r) => {
+      r.decision = '';
+      r.note = '';
+    });
     renderList();
   });
   document.getElementById('prc-close').addEventListener('click', () => sidebar.classList.remove('prc-open'));
@@ -710,33 +781,39 @@
 
   document.getElementById('prc-copy').addEventListener('click', () => {
     const text = buildOutput();
-    navigator.clipboard.writeText(text).then(() => {
-      const toast = document.getElementById('prc-toast');
-      toast.classList.remove('prc-hidden');
-      setTimeout(() => toast.classList.add('prc-hidden'), 2200);
-    }).catch(() => {
-      // Fallback
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        const toast = document.getElementById('prc-toast');
+        toast.classList.remove('prc-hidden');
+        setTimeout(() => toast.classList.add('prc-hidden'), 2200);
+      })
+      .catch(() => {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
   });
 
   // ── Utilities ─────────────────────────────────────────────────────────────
   function escHtml(s) {
-    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   function formatSuggestionHtml(suggestion) {
-    return suggestion.split('\n').map(l => {
-      const escaped = escHtml(l);
-      if (l.startsWith('- ')) return `<span class="prc-diff-del">${escaped}</span>`;
-      if (l.startsWith('+ ')) return `<span class="prc-diff-add">${escaped}</span>`;
-      return escaped;
-    }).join('\n');
+    return suggestion
+      .split('\n')
+      .map((l) => {
+        const escaped = escHtml(l);
+        if (l.startsWith('- ')) return `<span class="prc-diff-del">${escaped}</span>`;
+        if (l.startsWith('+ ')) return `<span class="prc-diff-add">${escaped}</span>`;
+        return escaped;
+      })
+      .join('\n');
   }
 
   function shortenPath(p) {

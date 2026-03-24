@@ -8,7 +8,9 @@ if (manifest) {
 async function checkStatus() {
   const statusEl = document.getElementById('status');
   try {
-    const tabs = await (chrome?.tabs?.query || browser?.tabs?.query)({ active: true, currentWindow: true });
+    const queryFn =
+      (typeof chrome !== 'undefined' && chrome.tabs?.query) || (typeof browser !== 'undefined' && browser.tabs?.query);
+    const tabs = queryFn ? await queryFn({ active: true, currentWindow: true }) : [];
     const url = tabs?.[0]?.url || '';
     const isPR = /^https:\/\/github\.com\/.+\/pull\/\d+/.test(url);
     if (isPR) {
