@@ -66,13 +66,30 @@
     const authorEl = el.querySelector('.author');
     const author = authorEl ? authorEl.innerText.trim() : 'unknown';
 
-    // File path from nearest file header
+    // File path: try multiple strategies for GitHub's DOM
     let file = '';
     let linesText = '';
-    const fileHeader = el.closest('.file') || el.closest('[data-path]');
-    if (fileHeader) {
-      const pathEl = fileHeader.querySelector('.file-header [data-path], .file-info a, .Truncate');
-      file = pathEl ? pathEl.getAttribute('title') || pathEl.innerText.trim() : '';
+    // Strategy 1: hidden input[name="path"] in the suggestion commit form (most reliable)
+    const pathInput = el.querySelector('input[name="path"]')
+      || el.closest('.js-line-comments')?.querySelector('input[name="path"]');
+    if (pathInput) {
+      file = pathInput.value;
+    }
+    // Strategy 2: conversation tab — the review thread <details> has a <summary> with a file link
+    if (!file) {
+      const reviewThread = el.closest('.review-thread-component, .js-resolvable-timeline-thread-container');
+      if (reviewThread) {
+        const fileLink = reviewThread.querySelector('summary a.text-mono');
+        if (fileLink) file = fileLink.innerText.trim();
+      }
+    }
+    // Strategy 3: classic diff view — comment is inside a .file container
+    if (!file) {
+      const fileHeader = el.closest('.file') || el.closest('[data-path]');
+      if (fileHeader) {
+        const pathEl = fileHeader.querySelector('.file-header [data-path], .file-info a, .Truncate');
+        file = pathEl ? pathEl.getAttribute('title') || pathEl.innerText.trim() : '';
+      }
     }
 
     // Line numbers from the table row
