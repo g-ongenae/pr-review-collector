@@ -75,7 +75,22 @@
       }
     });
 
-    // ── 2. PR-level review comments (conversation tab) ────────────────────
+    // ── 2. React-based "Files changed" / "changes" page ────────────────────
+    document.querySelectorAll('[data-testid="review-thread"]').forEach(thread => {
+      const main = extractChangesPageComment(thread);
+      if (!main || isNoiseComment(main) || isIgnoredAuthor(main.author)) return;
+      main.replies = [];
+      // Replies are [data-first-thread-comment="false"]
+      thread.querySelectorAll('[data-first-thread-comment="false"]').forEach(replyEl => {
+        const reply = extractChangesPageReply(replyEl);
+        if (reply && !isNoiseComment(reply) && !isIgnoredAuthor(reply.author)) {
+          main.replies.push(reply);
+        }
+      });
+      reviews.push(main);
+    });
+
+    // ── 3. PR-level review comments (conversation tab) ────────────────────
     document.querySelectorAll('.comment-body').forEach(el => {
       const wrapper = el.closest('.js-timeline-item, .timeline-comment-wrapper');
       if (!wrapper) return;
@@ -85,7 +100,7 @@
       if (c && !isNoiseComment(c) && !isIgnoredAuthor(c.author)) reviews.push(c);
     });
 
-    // ── 3. SonarQube / SonarCloud annotations ────────────────────────────
+    // ── 4. SonarQube / SonarCloud annotations ────────────────────────────
     document.querySelectorAll('[data-sonar-issue], .sonar-review-comment').forEach(el => {
       const c = extractSonarComment(el);
       if (c) reviews.push(c);
@@ -189,6 +204,75 @@
     const cleanBody = body.cloneNode(true);
     cleanBody.querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container').forEach(n => n.remove());
     const comment = cleanBody.innerText.trim();
+    if (!comment) return null;
+    return { author, comment };
+  }
+
+  // ── React-based "Files changed" page extractors ────────────────────────
+  function extractChangesPageComment(thread) {
+    const firstComment = thread.querySelector('[data-first-thread-comment="true"]');
+    if (!firstComment) return null;
+
+    // Author
+    const authorEl = firstComment.querySelector('[data-testid="avatar-link"], [class*="AuthorName"]');
+    const author = authorEl ? authorEl.innerText.trim() : 'unknown';
+
+    // Comment body
+    const bodyEl = firstComment.querySelector('.markdown-body');
+    if (!bodyEl) return null;
+    const cleanBody = bodyEl.cloneNode(true);
+    // Strip "Copilot uses AI. Check for mistakes." noise
+    cleanBody.querySelectorAll('[class*="SafeHTMLBox"] ~ p').forEach(n => n.remove());
+    const commentText = cleanBody.innerText.trim();
+    if (!commentText) return null;
+
+    // File path: walk up to the diff container which has the file header
+    let file = '';
+    const diffContainer = thread.closest('[class*="Diff-module__diff"]') || thread.closest('[id^="diff-"]');
+    if (diffContainer) {
+      // data-file-path attribute on the expand button
+      const filePathEl = diffContainer.querySelector('[data-file-path]');
+      if (filePathEl) {
+        file = filePathEl.getAttribute('data-file-path');
+      }
+      // Fallback: file name heading
+      if (!file) {
+        const heading = diffContainer.querySelector('[class*="file-name"] code, [class*="file-name"] a');
+        if (heading) file = heading.innerText.replace(/\u200E/g, '').trim(); // strip LRM markers
+      }
+    }
+
+    // Line numbers from the thread heading "Comment on lines R13 to R16"
+    let linesText = '';
+    const headingEl = thread.closest('[data-marker-id]')?.querySelector('h2') || thread.querySelector('h2');
+    if (headingEl) {
+      const m = headingEl.innerText.match(/R(\d+)(?:\s+to\s+R(\d+))?/i);
+      if (m) {
+        linesText = m[2] ? `L${m[1]}-L${m[2]}` : `L${m[1]}`;
+      }
+    }
+    // Fallback: from data-line-number on surrounding cells
+    if (!linesText && diffContainer) {
+      const marker = thread.closest('[data-marker-id]');
+      if (marker) {
+        const row = marker.closest('tr');
+        if (row) {
+          const lineCell = row.querySelector('[data-line-number]');
+          if (lineCell) linesText = `L${lineCell.dataset.lineNumber}`;
+        }
+      }
+    }
+
+    const type = detectType(firstComment, commentText);
+    return { file, lines: linesText, author, type, comment: commentText, suggestion: '', replies: [], decision: '', note: '' };
+  }
+
+  function extractChangesPageReply(el) {
+    const authorEl = el.querySelector('[data-testid="avatar-link"], [class*="AuthorName"]');
+    const author = authorEl ? authorEl.innerText.trim() : 'unknown';
+    const bodyEl = el.querySelector('.markdown-body');
+    if (!bodyEl) return null;
+    const comment = bodyEl.innerText.trim();
     if (!comment) return null;
     return { author, comment };
   }
