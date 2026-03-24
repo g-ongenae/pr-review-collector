@@ -79,6 +79,8 @@
 
     // ── 2. React-based "Files changed" / "changes" page ────────────────────
     document.querySelectorAll('[data-testid="review-thread"]').forEach(thread => {
+      // Skip resolved threads on changes page
+      if (isResolvedChangesThread(thread)) return;
       const main = extractChangesPageComment(thread);
       if (!main || isNoiseComment(main) || isIgnoredAuthor(main.author)) return;
       main.replies = [];
@@ -217,6 +219,23 @@
   }
 
   // ── React-based "Files changed" page extractors ────────────────────────
+  // Check if a review thread on the changes page is resolved
+  function isResolvedChangesThread(thread) {
+    const markerContainer = thread.closest('[data-marker-id]') || thread;
+    // Check for "Resolved" label badge
+    const labels = markerContainer.querySelectorAll('[class*="Label"], .prc-Label-Label-qG-Zu');
+    for (const label of labels) {
+      if ((label.textContent || '').trim().toLowerCase() === 'resolved') return true;
+    }
+    // Check for "Unresolve" button (present when already resolved)
+    const buttons = markerContainer.querySelectorAll('button');
+    for (const btn of buttons) {
+      const text = (btn.getAttribute('aria-label') || btn.textContent || '').toLowerCase();
+      if (text.includes('unresolve')) return true;
+    }
+    return false;
+  }
+
   function extractChangesPageComment(thread) {
     const firstComment = thread.querySelector('[data-first-thread-comment="true"]');
     if (!firstComment) return null;
