@@ -100,10 +100,16 @@
       if (c && !isNoiseComment(c) && !isIgnoredAuthor(c.author)) reviews.push(c);
     });
 
-    // ── 4. SonarQube / SonarCloud annotations ────────────────────────────
+    // ── 4. SonarQube / SonarCloud annotations (classic DOM) ──────────────
     document.querySelectorAll('[data-sonar-issue], .sonar-review-comment').forEach(el => {
       const c = extractSonarComment(el);
       if (c) reviews.push(c);
+    });
+
+    // ── 5. Inline annotations on changes page (SonarCloud, CI checks, etc.)
+    document.querySelectorAll('[data-testid^="annotation-"], [class*="InlineAnnotation-module"]').forEach(el => {
+      const c = extractInlineAnnotation(el);
+      if (c && !isIgnoredAuthor(c.author)) reviews.push(c);
     });
 
     // Deduplicate by a rough key
@@ -337,9 +343,55 @@
       type: normalizeSeverity(severity),
       comment: text,
       suggestion: '',
+      replies: [],
       decision: '',
       note: ''
     };
+  }
+
+  // ── Inline annotation on changes page (SonarCloud, CI checks, etc.) ────
+  function extractInlineAnnotation(el) {
+    // Message text (the bold warning/error text)
+    const msgEl = el.querySelector('[data-weight="semibold"], [class*="Annotation-module"] span[class*="fgColor"]');
+    const comment = msgEl ? (msgEl.textContent || '').trim() : '';
+    if (!comment) return null;
+
+    // Severity from data-level attribute
+    const level = el.getAttribute('data-level') || el.closest('[data-level]')?.getAttribute('data-level') || '';
+    const severityMap = { WARNING: 'Medium', ERROR: 'High', NOTICE: 'Low', FAILURE: 'High' };
+    const type = severityMap[level.toUpperCase()] || normalizeSeverity(level);
+
+    // Source (e.g. "SonarCloud Code Analysis")
+    let author = '';
+    const sourceEl = el.querySelector('[class*="annotationSource"] [data-size="small"]');
+    if (sourceEl) author = (sourceEl.textContent || '').trim();
+    if (!author) {
+      const imgAlt = el.querySelector('[class*="annotationSource"] img');
+      if (imgAlt) author = imgAlt.alt.replace(' avatar image', '').trim();
+    }
+    if (!author) author = 'CI Check';
+
+    // Line number from heading "Check warning on line R4"
+    let linesText = '';
+    const headingEl = el.querySelector('h2');
+    if (headingEl) {
+      const m = (headingEl.textContent || '').match(/R(\d+)/);
+      if (m) linesText = `L${m[1]}`;
+    }
+
+    // File path from parent diff container
+    let file = '';
+    const diffContainer = el.closest('[class*="Diff-module__diff"]') || el.closest('[id^="diff-"]');
+    if (diffContainer) {
+      const filePathEl = diffContainer.querySelector('[data-file-path]');
+      if (filePathEl) file = filePathEl.getAttribute('data-file-path');
+      if (!file) {
+        const heading = diffContainer.querySelector('[class*="file-name"] code');
+        if (heading) file = (heading.textContent || '').replace(/\u200E/g, '').trim();
+      }
+    }
+
+    return { file, lines: linesText, author, type, comment, suggestion: '', replies: [], decision: '', note: '' };
   }
 
   // ── Noise filter — skip GitHub UI artefacts that aren't real comments ─
