@@ -29,7 +29,7 @@
     // ── 1. Inline file review comments (standard PR diff comments) ──────────
     document.querySelectorAll('.review-comment, .inline-comment-form-container').forEach(el => {
       const comment = extractInlineComment(el);
-      if (comment) reviews.push(comment);
+      if (comment && !isNoiseComment(comment)) reviews.push(comment);
     });
 
     // ── 2. PR-level review comments (conversation tab) ────────────────────
@@ -39,7 +39,7 @@
       // Skip if already captured as inline
       if (wrapper.closest('.review-comment')) return;
       const c = extractConversationComment(el, wrapper);
-      if (c) reviews.push(c);
+      if (c && !isNoiseComment(c)) reviews.push(c);
     });
 
     // ── 3. SonarQube / SonarCloud annotations ────────────────────────────
@@ -130,6 +130,19 @@
       decision: '',
       note: ''
     };
+  }
+
+  // ── Noise filter — skip GitHub UI artefacts that aren't real comments ─
+  const NOISE_PATTERNS = /^(preview|nothing to preview|write|leave a comment|add a comment|add your comment|comment|cancel|submit|close issue|close pull request|update comment)$/i;
+
+  function isNoiseComment(r) {
+    const text = r.comment.trim();
+    // Filter out short UI-text artefacts, especially from unknown authors
+    if (NOISE_PATTERNS.test(text)) return true;
+    // Multi-token noise: lines that are only GitHub tab/button labels
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length <= 3 && lines.every(l => NOISE_PATTERNS.test(l))) return true;
+    return false;
   }
 
   // ── Type detection helpers ────────────────────────────────────────────────
