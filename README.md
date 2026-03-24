@@ -204,6 +204,8 @@ pr-review-collector/
 ├── manifest.chrome.json   # Chrome/Edge/Brave manifest (V3)
 ├── content_script.js      # DOM scraping + sidebar logic
 ├── sidebar.css            # Sidebar styles (light + dark mode)
+├── popup.html             # Toolbar popup (extension info)
+├── popup.js               # Popup logic (version, status)
 ├── icon.svg               # Extension icon
 └── docs/
     ├── architecture.svg   # Architecture diagram

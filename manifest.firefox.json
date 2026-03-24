@@ -21,7 +21,7 @@
     "default_title": "PR Review Collector",
     "default_icon": {
       "48": "icon.svg"
-    }
-  },
-  "web_accessible_resources": ["sidebar.html"]
+    },
+    "default_popup": "popup.html"
+  }
 }

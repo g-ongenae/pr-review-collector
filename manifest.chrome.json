@@ -23,12 +23,7 @@
     "default_title": "PR Review Collector",
     "default_icon": {
       "48": "icon.svg"
-    }
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["sidebar.html"],
-      "matches": ["https://github.com/*"]
-    }
-  ]
+    },
+    "default_popup": "popup.html"
+  }
 }
