@@ -51,7 +51,7 @@ GitHub PR page  ──scrape──►  Content script  ──sends to──►  
                                                            📋 Clipboard  ──paste──►  Claude
 ```
 
-Extension files: `manifest.json` · `content_script.js` · `sidebar.css`
+Extension files: `manifest.{firefox,chrome}.json` · `content_script.js` · `sidebar.css`
 
 Permissions required: `activeTab` · `clipboardWrite` · `storage`
 
@@ -59,23 +59,48 @@ Permissions required: `activeTab` · `clipboardWrite` · `storage`
 
 ## Installation
 
-### Temporary (development)
+The extension ships two manifest files — pick the one for your browser:
+
+| File | Browser | Manifest version |
+|---|---|---|
+| `manifest.firefox.json` | Firefox | V2 |
+| `manifest.chrome.json` | Chrome / Edge / Brave | V3 |
+
+Before loading, copy the right one to `manifest.json`:
+
+```bash
+# Firefox
+cp manifest.firefox.json manifest.json
+
+# Chrome / Edge / Brave
+cp manifest.chrome.json manifest.json
+```
+
+### Firefox (temporary / development)
 
 1. Clone or download this repository
-2. Add a 48×48 PNG named `icon.png` to the root folder
+2. `cp manifest.firefox.json manifest.json`
 3. Open Firefox and navigate to `about:debugging`
 4. Click **This Firefox** → **Load Temporary Add-on**
 5. Select `manifest.json`
 
 The extension is active until Firefox is closed. Repeat step 4–5 after each restart.
 
+### Chrome / Edge / Brave
+
+1. Clone or download this repository
+2. `cp manifest.chrome.json manifest.json`
+3. Open Chrome and navigate to `chrome://extensions`
+4. Enable **Developer mode** (top-right toggle)
+5. Click **Load unpacked** and select the repository folder
+
 ### Permanent (self-distributed)
 
-1. Zip the extension folder contents (not the folder itself)
-2. In Firefox, go to `about:addons` → gear icon → **Install Add-on From File**
-3. Select the `.zip` file
+**Firefox:** Zip the extension folder contents and install via `about:addons` → gear icon → **Install Add-on From File**.
 
 > For signing and distribution via addons.mozilla.org, see [Mozilla's extension signing docs](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/).
+
+**Chrome:** Zip the folder and distribute the `.crx` file, or publish to the [Chrome Web Store](https://developer.chrome.com/docs/webstore/publish/).
 
 ---
 
@@ -175,12 +200,13 @@ Resolved threads are automatically excluded on both pages (`data-resolved="true"
 
 ```
 pr-review-collector/
-├── manifest.json          # Extension manifest (Manifest V2, Firefox)
+├── manifest.firefox.json  # Firefox manifest (V2)
+├── manifest.chrome.json   # Chrome/Edge/Brave manifest (V3)
 ├── content_script.js      # DOM scraping + sidebar logic
 ├── sidebar.css            # Sidebar styles (light + dark mode)
-├── icon.png               # Extension icon (48×48, add manually)
+├── icon.svg               # Extension icon
 └── docs/
-    ├── architecture.png   # Architecture diagram (see below)
+    ├── architecture.svg   # Architecture diagram
     └── output_example.md  # Example clipboard output
 ```
 
