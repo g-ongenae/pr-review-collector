@@ -214,6 +214,25 @@ pr-review-collector/
 
 ---
 
+## CI / CD
+
+A GitHub Actions workflow (`.github/workflows/publish.yml`) automatically publishes to both stores on push to `main`. It gracefully skips any store whose secrets are not configured.
+
+### Required secrets
+
+| Secret                 | Store   | Where to get it                                                                                           |
+| ---------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `FIREFOX_JWT_ISSUER`   | Firefox | [addons.mozilla.org/developers/addon/api/key](https://addons.mozilla.org/en-US/developers/addon/api/key/) |
+| `FIREFOX_JWT_SECRET`   | Firefox | Same page as above                                                                                        |
+| `CHROME_EXTENSION_ID`  | Chrome  | [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole) — your extension's ID         |
+| `CHROME_CLIENT_ID`     | Chrome  | [Google Cloud Console](https://console.cloud.google.com/) OAuth credentials                               |
+| `CHROME_CLIENT_SECRET` | Chrome  | Same as above                                                                                             |
+| `CHROME_REFRESH_TOKEN` | Chrome  | OAuth flow — see [Chrome Web Store API docs](https://developer.chrome.com/docs/webstore/using-api/)       |
+
+Add these in your repository's **Settings → Secrets and variables → Actions**.
+
+---
+
 ## Contributing
 
 The most useful contributions are updates to the scraping selectors when GitHub or SonarQube changes their DOM. When submitting a fix:
