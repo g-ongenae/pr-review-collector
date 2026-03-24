@@ -24,7 +24,7 @@
 
   // ── Ignored authors ─────────────────────────────────────────────────────
   const IGNORED_AUTHORS_KEY = 'prc-ignored-authors';
-  const DEFAULT_IGNORED_AUTHORS = ['notion-workspace', 'nx-cloud'];
+  const DEFAULT_IGNORED_AUTHORS = ['notion-workspace', 'nx-cloud', 'socket-security'];
 
   function getIgnoredAuthors() {
     const stored = localStorage.getItem(IGNORED_AUTHORS_KEY);
