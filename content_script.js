@@ -45,10 +45,34 @@
   function scrapeReviews() {
     const reviews = [];
 
-    // ── 1. Inline file review comments (standard PR diff comments) ──────────
-    document.querySelectorAll('.review-comment, .inline-comment-form-container').forEach(el => {
+    // ── 1. Review threads (groups linked comments together) ──────────────
+    const processedThreads = new Set();
+    document.querySelectorAll('.review-thread-component, .js-resolvable-timeline-thread-container').forEach(thread => {
+      if (processedThreads.has(thread)) return;
+      processedThreads.add(thread);
+      const commentEls = thread.querySelectorAll('.review-comment');
+      if (!commentEls.length) return;
+      // First comment is the main review
+      const main = extractInlineComment(commentEls[0]);
+      if (!main || isNoiseComment(main) || isIgnoredAuthor(main.author)) return;
+      // Remaining comments are replies
+      main.replies = [];
+      for (let i = 1; i < commentEls.length; i++) {
+        const reply = extractReply(commentEls[i]);
+        if (reply && !isNoiseComment(reply) && !isIgnoredAuthor(reply.author)) {
+          main.replies.push(reply);
+        }
+      }
+      reviews.push(main);
+    });
+    // Catch any orphan .review-comment not inside a thread container
+    document.querySelectorAll('.review-comment').forEach(el => {
+      if (el.closest('.review-thread-component, .js-resolvable-timeline-thread-container')) return;
       const comment = extractInlineComment(el);
-      if (comment && !isNoiseComment(comment) && !isIgnoredAuthor(comment.author)) reviews.push(comment);
+      if (comment && !isNoiseComment(comment) && !isIgnoredAuthor(comment.author)) {
+        comment.replies = [];
+        reviews.push(comment);
+      }
     });
 
     // ── 2. PR-level review comments (conversation tab) ────────────────────
@@ -153,7 +177,20 @@
     // Severity type heuristics (SonarQube / Copilot label tags)
     const type = detectType(el, commentText);
 
-    return { file, lines: linesText, author, type, comment: commentText, suggestion, decision: '', note: '' };
+    return { file, lines: linesText, author, type, comment: commentText, suggestion, replies: [], decision: '', note: '' };
+  }
+
+  // Extract a reply comment (lightweight — just author + text)
+  function extractReply(el) {
+    const body = el.querySelector('.comment-body, .js-comment-body');
+    if (!body) return null;
+    const authorEl = el.querySelector('.author');
+    const author = authorEl ? authorEl.innerText.trim() : 'unknown';
+    const cleanBody = body.cloneNode(true);
+    cleanBody.querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container').forEach(n => n.remove());
+    const comment = cleanBody.innerText.trim();
+    if (!comment) return null;
+    return { author, comment };
   }
 
   // Extract suggestion diff with +/- markers from GitHub's suggestion blob.
@@ -190,7 +227,7 @@
     if (/approved these changes|requested changes|merged|closed|reopened/i.test(text) && text.length < 60) return null;
 
     const type = detectType(wrapper, text);
-    return { file: '', lines: '', author, type, comment: text, suggestion: '', decision: '', note: '' };
+    return { file: '', lines: '', author, type, comment: text, suggestion: '', replies: [], decision: '', note: '' };
   }
 
   // ── Sonar annotation (best-effort) ───────────────────────────────────────
@@ -303,7 +340,7 @@
     box.innerHTML = `
       <strong>${escHtml(meta.title || 'Pull Request')}</strong><br>
       <span>Branch: ${escHtml(meta.branch || '–')}</span><br>
-      <span>${reviews.length} comment${reviews.length !== 1 ? 's' : ''} found</span>
+      <span>${reviews.length} thread${reviews.length !== 1 ? 's' : ''} found</span>
     `;
   }
 
@@ -336,6 +373,9 @@
         </div>
         <div class="prc-comment">${escHtml(r.comment)}</div>
         ${r.suggestion ? `<div class="prc-suggestion"><em>Suggested change:</em><pre>${formatSuggestionHtml(r.suggestion)}</pre></div>` : ''}
+        ${r.replies && r.replies.length ? `<div class="prc-replies">${r.replies.map(rp =>
+          `<div class="prc-reply"><span class="prc-reply-author">${escHtml(rp.author)}:</span> ${escHtml(rp.comment)}</div>`
+        ).join('')}</div>` : ''}
         <div class="prc-decision-row">
           <select class="prc-decision-select" data-idx="${i}">${opts}</select>
           <input class="prc-note-input" data-idx="${i}" type="text" placeholder="Optional note…" value="${escHtml(r.note)}">
@@ -398,6 +438,12 @@
         }
         lines.push('- **Comment**:');
         r.comment.split('\n').forEach(l => lines.push('  > ' + l));
+        if (r.replies && r.replies.length) {
+          lines.push('- **Replies**:');
+          r.replies.forEach(rp => {
+            lines.push(`  > **${rp.author}**: ${rp.comment.split('\n').join(' ')}`);
+          });
+        }
         const humanDecision = r.note ? `${r.decision} / ${r.note}` : r.decision;
         lines.push(`- **Human decision**: ${humanDecision}`);
         lines.push('');
