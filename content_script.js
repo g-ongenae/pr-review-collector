@@ -258,7 +258,7 @@
     return `
       <div id="prc-header">
         <span id="prc-title">PR Review Collector</span>
-        <button id="prc-reset" title="Reset all decisions">⟲</button>
+        <button id="prc-reset" title="Reset all decisions">🧹</button>
         <button id="prc-refresh" title="Re-scrape page">↺</button>
         <button id="prc-close" title="Close">✕</button>
       </div>
