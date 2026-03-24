@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+  "name": "PR Review Collector",
+  "version": "1.0.0",
+  "description": "Collect GitHub PR review comments and assign human decisions for Claude.",
+  "permissions": [
+    "activeTab",
+    "clipboardWrite",
+    "storage",
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/pull/*"],
+      "js": ["content_script.js"],
+      "css": ["sidebar.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_action": {
+    "default_title": "PR Review Collector",
+    "default_icon": {
+      "48": "icon.svg"
+    }
+  },
+  "web_accessible_resources": ["sidebar.html"]
+}

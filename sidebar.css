@@ -1,0 +1,257 @@
+/* sidebar.css — injected into GitHub PR pages */
+
+#prc-toggle {
+  position: fixed;
+  bottom: 32px;
+  right: 20px;
+  z-index: 99998;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow .15s;
+}
+#prc-toggle:hover { box-shadow: 0 4px 14px rgba(0,0,0,.2); }
+
+#prc-sidebar {
+  position: fixed;
+  top: 0;
+  right: -440px;
+  width: 420px;
+  height: 100vh;
+  z-index: 99999;
+  background: #fff;
+  border-left: 1px solid #d0d7de;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: #1f2328;
+  transition: right .25s ease;
+  box-shadow: -4px 0 20px rgba(0,0,0,.1);
+}
+#prc-sidebar.prc-open { right: 0; }
+
+@media (prefers-color-scheme: dark) {
+  #prc-sidebar { background: #0d1117; color: #e6edf3; border-color: #30363d; }
+  #prc-toggle  { background: #161b22; border-color: #30363d; }
+}
+
+/* Header */
+#prc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #d0d7de;
+  flex-shrink: 0;
+}
+@media (prefers-color-scheme: dark) { #prc-header { border-color: #30363d; } }
+
+#prc-title { flex: 1; font-weight: 600; font-size: 14px; }
+#prc-header button {
+  background: none; border: none; cursor: pointer; padding: 4px 6px;
+  color: #57606a; border-radius: 6px; font-size: 15px;
+}
+#prc-header button:hover { background: #f3f4f6; }
+@media (prefers-color-scheme: dark) {
+  #prc-header button { color: #8b949e; }
+  #prc-header button:hover { background: #21262d; }
+}
+
+/* Meta box */
+#prc-meta-box {
+  padding: 10px 14px;
+  background: #f6f8fa;
+  border-bottom: 1px solid #d0d7de;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #57606a;
+  flex-shrink: 0;
+}
+@media (prefers-color-scheme: dark) {
+  #prc-meta-box { background: #161b22; border-color: #30363d; color: #8b949e; }
+}
+#prc-meta-box strong { color: #1f2328; font-size: 13px; }
+@media (prefers-color-scheme: dark) { #prc-meta-box strong { color: #e6edf3; } }
+
+/* Review list */
+#prc-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px 4px;
+}
+
+.prc-empty {
+  text-align: center;
+  color: #57606a;
+  padding: 32px 16px;
+  line-height: 1.7;
+}
+
+/* Review card */
+.prc-card {
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  transition: opacity .2s, background .2s;
+}
+.prc-card-ignored {
+  opacity: .45;
+  background: #f6f8fa;
+}
+@media (prefers-color-scheme: dark) {
+  .prc-card { border-color: #30363d; }
+  .prc-card-ignored { background: #161b22; }
+}
+
+/* Card meta row */
+.prc-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.prc-file {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+  background: #ddf4ff;
+  color: #0550ae;
+  padding: 1px 5px;
+  border-radius: 4px;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (prefers-color-scheme: dark) { .prc-file { background: #1c2d3e; color: #79c0ff; } }
+
+.prc-lines {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+  color: #57606a;
+}
+@media (prefers-color-scheme: dark) { .prc-lines { color: #8b949e; } }
+
+.prc-author {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1f2328;
+}
+@media (prefers-color-scheme: dark) { .prc-author { color: #e6edf3; } }
+
+.prc-type {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.prc-type-nit    { background: #eef2ff; color: #3730a3; }
+.prc-type-low    { background: #f0fdf4; color: #166534; }
+.prc-type-medium { background: #fffbeb; color: #92400e; }
+.prc-type-high   { background: #fef2f2; color: #991b1b; }
+@media (prefers-color-scheme: dark) {
+  .prc-type-nit    { background: #1e1b4b; color: #a5b4fc; }
+  .prc-type-low    { background: #14532d; color: #86efac; }
+  .prc-type-medium { background: #451a03; color: #fcd34d; }
+  .prc-type-high   { background: #450a0a; color: #fca5a5; }
+}
+
+/* Comment body */
+.prc-comment {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #1f2328;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 120px;
+  overflow-y: auto;
+}
+@media (prefers-color-scheme: dark) { .prc-comment { color: #e6edf3; } }
+
+/* Suggestion */
+.prc-suggestion {
+  font-size: 11px;
+  background: #f6f8fa;
+  border-left: 3px solid #0969da;
+  padding: 4px 8px;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 6px;
+}
+.prc-suggestion pre { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
+@media (prefers-color-scheme: dark) {
+  .prc-suggestion { background: #161b22; border-color: #388bfd; color: #8b949e; }
+}
+
+/* Decision row */
+.prc-decision-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.prc-decision-select, .prc-note-input {
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #fff;
+  color: #1f2328;
+}
+.prc-decision-select { flex-shrink: 0; }
+.prc-note-input { flex: 1; min-width: 0; }
+@media (prefers-color-scheme: dark) {
+  .prc-decision-select, .prc-note-input {
+    background: #161b22;
+    border-color: #30363d;
+    color: #e6edf3;
+  }
+}
+
+/* Footer */
+#prc-footer {
+  padding: 10px 12px;
+  border-top: 1px solid #d0d7de;
+  flex-shrink: 0;
+}
+@media (prefers-color-scheme: dark) { #prc-footer { border-color: #30363d; } }
+
+#prc-copy {
+  width: 100%;
+  padding: 8px;
+  background: #2da44e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+#prc-copy:hover { background: #2c974b; }
+
+/* Toast */
+#prc-toast {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2328;
+  color: #fff;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+#prc-toast.prc-hidden { opacity: 0; }

@@ -1,0 +1,33 @@
+{
+  "name": "Claude Code Sandbox",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached,readonly",
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
+  ],
+  "remoteEnv": {
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+    "GITHUB_PACKAGES_TOKEN": "${localEnv:GITHUB_PACKAGES_TOKEN}",
+    "GIT_CONFIG_COUNT": "4",
+    "GIT_CONFIG_KEY_0": "credential.helper",
+    "GIT_CONFIG_VALUE_0": "",
+    "GIT_CONFIG_KEY_1": "credential.helper",
+    "GIT_CONFIG_VALUE_1": "!f() { echo username=token; echo password=$GITHUB_TOKEN; }; f",
+    "GIT_CONFIG_KEY_2": "url.https://github.com/.insteadOf",
+    "GIT_CONFIG_VALUE_2": "git@github.com:",
+    "GIT_CONFIG_KEY_3": "url.https://github.com/.insteadOf",
+    "GIT_CONFIG_VALUE_3": "ssh://git@github.com/"
+  },
+  "postCreateCommand": "npm install -g @anthropic-ai/claude-code",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-vscode-remote.remote-containers"]
+    }
+  }
+}
