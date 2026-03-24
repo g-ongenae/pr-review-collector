@@ -220,9 +220,18 @@
     // Comment body
     const bodyEl = firstComment.querySelector('.markdown-body');
     if (!bodyEl) return null;
+
+    // Suggested change (same .js-suggested-changes-blob structure as conversation tab)
+    let suggestion = '';
+    const suggestBlob = bodyEl.querySelector('.js-suggested-changes-blob');
+    if (suggestBlob) {
+      suggestion = extractSuggestionDiff(suggestBlob);
+    }
+
     const cleanBody = bodyEl.cloneNode(true);
-    // Strip "Copilot uses AI. Check for mistakes." noise
-    cleanBody.querySelectorAll('[class*="SafeHTMLBox"] ~ p').forEach(n => n.remove());
+    // Strip suggestion blob, "Copilot uses AI" noise, and action buttons
+    cleanBody.querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container, .js-apply-changes').forEach(n => n.remove());
+    cleanBody.querySelectorAll('p.text-small.color-fg-muted').forEach(n => n.remove());
     const commentText = cleanBody.innerText.trim();
     if (!commentText) return null;
 
@@ -264,7 +273,7 @@
     }
 
     const type = detectType(firstComment, commentText);
-    return { file, lines: linesText, author, type, comment: commentText, suggestion: '', replies: [], decision: '', note: '' };
+    return { file, lines: linesText, author, type, comment: commentText, suggestion, replies: [], decision: '', note: '' };
   }
 
   function extractChangesPageReply(el) {
