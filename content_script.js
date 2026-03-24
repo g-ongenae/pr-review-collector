@@ -55,8 +55,8 @@
     document.querySelectorAll('.comment-body').forEach(el => {
       const wrapper = el.closest('.js-timeline-item, .timeline-comment-wrapper');
       if (!wrapper) return;
-      // Skip if already captured as inline
-      if (wrapper.closest('.review-comment')) return;
+      // Skip if already captured as inline review comment
+      if (el.closest('.review-comment, .js-line-comments, .js-inline-comments-container')) return;
       const c = extractConversationComment(el, wrapper);
       if (c && !isNoiseComment(c) && !isIgnoredAuthor(c.author)) reviews.push(c);
     });
@@ -70,7 +70,7 @@
     // Deduplicate by a rough key
     const seen = new Set();
     return reviews.filter(r => {
-      const key = `${r.file}|${r.lines}|${r.author}|${r.comment.slice(0, 40)}`;
+      const key = `${r.author}|${r.comment.slice(0, 60)}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
