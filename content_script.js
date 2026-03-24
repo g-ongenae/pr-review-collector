@@ -111,14 +111,28 @@
       }
     }
 
-    // Line numbers from the table row
-    const row = el.closest('tr');
-    if (row) {
-      const lineNums = row.querySelectorAll('.blob-num');
-      if (lineNums.length >= 2) {
-        linesText = `L${lineNums[0].dataset.lineNumber || '?'}-L${lineNums[lineNums.length - 1].dataset.lineNumber || '?'}`;
-      } else if (lineNums.length === 1) {
-        linesText = `L${lineNums[0].dataset.lineNumber || '?'}`;
+    // Line numbers: extract from the diff table in the review thread
+    // Strategy 1: conversation tab — diff table is in .blob-wrapper sibling
+    const reviewThread = el.closest('.review-thread-component, .js-resolvable-timeline-thread-container');
+    if (reviewThread) {
+      const lineNumCells = reviewThread.querySelectorAll('.blob-num[data-line-number]');
+      if (lineNumCells.length) {
+        const nums = Array.from(lineNumCells).map(td => td.dataset.lineNumber).filter(Boolean);
+        const first = nums[0];
+        const last = nums[nums.length - 1];
+        linesText = first === last ? `L${first}` : `L${first}-L${last}`;
+      }
+    }
+    // Strategy 2: classic diff view — comment is inside a <tr>
+    if (!linesText) {
+      const row = el.closest('tr');
+      if (row) {
+        const lineNums = row.querySelectorAll('.blob-num[data-line-number]');
+        if (lineNums.length >= 2) {
+          linesText = `L${lineNums[0].dataset.lineNumber}-L${lineNums[lineNums.length - 1].dataset.lineNumber}`;
+        } else if (lineNums.length === 1) {
+          linesText = `L${lineNums[0].dataset.lineNumber}`;
+        }
       }
     }
 
