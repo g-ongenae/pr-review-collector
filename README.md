@@ -37,18 +37,14 @@ This extension gives you a sidebar panel directly on the GitHub PR page. For eac
 
 ## Architecture
 
-```
-GitHub PR page  ──scrape──►  Content script  ──sends to──►  Sidebar panel
-                              (content_script.js)             (sidebar.html/css/js)
-                                                                      │
-                                                               Per-review decisions
-                                                               (dropdown + note field)
-                                                                      │
-                                                              Output builder
-                                                              (filters Ignore,
-                                                               formats Markdown)
-                                                                      │
-                                                           📋 Clipboard  ──paste──►  Claude
+```mermaid
+flowchart LR
+    A["GitHub PR page<br/>Copilot · Sonar · CI<br/>Manual reviews"] -->|scrape| B["Content script<br/>Groups threads<br/>Filters resolved & ignored"]
+    B -->|sends to| C["Sidebar panel<br/>Decisions · ignored authors<br/>Commit strategy"]
+    C --> D["Per-review decisions<br/>Dropdown + note"]
+    D --> E["Output builder<br/>Filters Ignore<br/>Formats Markdown + strategy"]
+    E -->|copy to clipboard| F["📋 Clipboard"]
+    F -->|paste| G["Claude<br/>Applies all decisions"]
 ```
 
 Extension files: `manifest.{firefox,chrome}.json` · `content_script.js` · `sidebar.css`
