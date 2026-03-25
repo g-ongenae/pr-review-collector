@@ -1,6 +1,6 @@
 # PR Review Collector
 
-A Firefox extension that scrapes review comments from GitHub Pull Requests, lets you assign a human decision to each one, and copies a ready-to-paste prompt directly into Claude.
+A browser (Chrome & Firefox) extension that scrapes review comments from GitHub Pull Requests, lets you assign a human decision to each one, and copies a ready-to-paste prompt directly into Claude.
 
 No GitHub login required. No API calls. Fully client-side.
 
