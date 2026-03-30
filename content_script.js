@@ -481,6 +481,11 @@
       .map((l) => l.trim())
       .filter(Boolean);
     if (lines.length <= 3 && lines.every((l) => NOISE_PATTERNS.test(l))) return true;
+    // Copilot "Pull request overview" summary comment
+    const author = (r.author || '').toLowerCase();
+    if (author === 'copilot' && /^pull request overview\b/im.test(text)) return true;
+    // SonarQube/SonarCloud "Quality Gate passed/failed" summary comment
+    if (author === 'sonarqubecloud' && /quality gate (passed|failed)/i.test(text)) return true;
     return false;
   }
 
