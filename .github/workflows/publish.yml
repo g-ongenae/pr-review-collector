@@ -27,6 +27,7 @@ jobs:
     outputs:
       has-firefox: ${{ steps.check.outputs.has-firefox }}
       has-chrome: ${{ steps.check.outputs.has-chrome }}
+      has-safari: ${{ steps.check.outputs.has-safari }}
     steps:
       - name: Check which secrets are configured
         id: check
@@ -43,12 +44,18 @@ jobs:
             echo "has-chrome=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Skipping Chrome publish — CHROME_EXTENSION_ID, CHROME_CLIENT_ID, CHROME_CLIENT_SECRET, and CHROME_REFRESH_TOKEN not set"
           fi
+          if [[ -n "${{ secrets.APPLE_API_KEY_ID }}" && -n "${{ secrets.APPLE_API_ISSUER_ID }}" && -n "${{ secrets.APPLE_API_KEY_BASE64 }}" && -n "${{ secrets.APPLE_TEAM_ID }}" ]]; then
+            echo "has-safari=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-safari=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Safari publish — APPLE_API_KEY_ID, APPLE_API_ISSUER_ID, APPLE_API_KEY_BASE64, and APPLE_TEAM_ID not set"
+          fi
 
   build:
     name: Build extension packages
     runs-on: ubuntu-latest
     needs: check-secrets
-    if: needs.check-secrets.outputs.has-firefox == 'true' || needs.check-secrets.outputs.has-chrome == 'true'
+    if: needs.check-secrets.outputs.has-firefox == 'true' || needs.check-secrets.outputs.has-chrome == 'true' || needs.check-secrets.outputs.has-safari == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -71,6 +78,75 @@ jobs:
         with:
           name: extension-chrome
           path: extension-chrome.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-safari-source
+          path: extension-chrome.zip
+
+  publish-safari:
+    name: Publish to Mac App Store (Safari)
+    runs-on: macos-latest
+    needs: [check-secrets, build]
+    if: needs.check-secrets.outputs.has-safari == 'true'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: extension-safari-source
+
+      - name: Set up App Store Connect API key
+        run: |
+          mkdir -p ~/private_keys
+          echo "${{ secrets.APPLE_API_KEY_BASE64 }}" | base64 --decode > ~/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+
+      - name: Convert to Safari extension
+        run: |
+          unzip extension-chrome.zip -d extension
+          xcrun safari-web-extension-converter extension \
+            --project-location ./safari-project \
+            --app-name "PR Review Collector" \
+            --bundle-identifier com.pr-review-collector.extension \
+            --no-prompt
+
+      - name: Build and archive
+        run: |
+          cd safari-project
+          xcodebuild archive \
+            -project "PR Review Collector.xcodeproj" \
+            -scheme "PR Review Collector (macOS)" \
+            -configuration Release \
+            -archivePath "$PWD/build/PRReviewCollector.xcarchive" \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="3rd Party Mac Developer Application"
+
+      - name: Export archive
+        run: |
+          cd safari-project
+          cat > ExportOptions.plist << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>destination</key>
+            <string>upload</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$PWD/build/PRReviewCollector.xcarchive" \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath "$PWD/build/export"
+
+      - name: Upload to App Store Connect
+        run: |
+          xcrun altool --upload-app \
+            --type macos \
+            --file safari-project/build/export/*.pkg \
+            --apiKey "${{ secrets.APPLE_API_KEY_ID }}" \
+            --apiIssuer "${{ secrets.APPLE_API_ISSUER_ID }}"
 
   publish-firefox:
     name: Publish to Firefox Add-ons

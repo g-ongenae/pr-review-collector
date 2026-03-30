@@ -1,6 +1,6 @@
 # PR Review Collector
 
-A browser (Chrome & Firefox) extension that scrapes review comments from GitHub Pull Requests, lets you assign a human decision to each one, and copies a ready-to-paste prompt directly into Claude.
+A browser (Chrome, Firefox & Safari) extension that scrapes review comments from GitHub Pull Requests, lets you assign a human decision to each one, and copies a ready-to-paste prompt directly into Claude.
 
 No GitHub login required. No API calls. Fully client-side.
 
@@ -61,6 +61,7 @@ The extension ships two manifest files — pick the one for your browser:
 | ----------------------- | --------------------- | ---------------- |
 | `manifest.firefox.json` | Firefox               | V2               |
 | `manifest.chrome.json`  | Chrome / Edge / Brave | V3               |
+| `manifest.chrome.json`  | Safari (via Xcode)    | V3               |
 
 Before loading, copy the right one to `manifest.json`:
 
@@ -89,6 +90,22 @@ The extension is active until Firefox is closed. Repeat step 4–5 after each re
 3. Open Chrome and navigate to `chrome://extensions`
 4. Enable **Developer mode** (top-right toggle)
 5. Click **Load unpacked** and select the repository folder
+
+### Safari (macOS — requires Xcode)
+
+Safari supports WebExtensions through Apple's converter tool. You need a Mac with **Xcode 12+** installed.
+
+1. Clone or download this repository
+2. `cp manifest.chrome.json manifest.json`
+3. Run the converter:
+   ```bash
+   xcrun safari-web-extension-converter /path/to/pr-review-collector --project-location ./safari-extension
+   ```
+4. Xcode opens automatically with the generated project — click **Build** (⌘B)
+5. Open Safari and go to **Safari → Settings → Extensions**
+6. Enable **PR Review Collector**
+
+> Safari may show a warning that the extension is unsigned. To allow it, enable **Develop → Allow Unsigned Extensions** from the menu bar (this must be re-enabled after each Safari restart). The **Develop** menu can be turned on in **Safari → Settings → Advanced → Show features for web developers**.
 
 ### Permanent (self-distributed)
 
@@ -228,6 +245,10 @@ A GitHub Actions workflow (`.github/workflows/publish.yml`) automatically publis
 | `CHROME_CLIENT_ID`     | Chrome  | [Google Cloud Console](https://console.cloud.google.com/) OAuth credentials                               |
 | `CHROME_CLIENT_SECRET` | Chrome  | Same as above                                                                                             |
 | `CHROME_REFRESH_TOKEN` | Chrome  | OAuth flow — see [Chrome Web Store API docs](https://developer.chrome.com/docs/webstore/using-api/)       |
+| `APPLE_API_KEY_ID`     | Safari  | [App Store Connect → Keys](https://appstoreconnect.apple.com/access/integrations/api) — Key ID            |
+| `APPLE_API_ISSUER_ID`  | Safari  | Same page — Issuer ID (shown above the key list)                                                          |
+| `APPLE_API_KEY_BASE64` | Safari  | Base64-encoded `.p8` private key: `base64 -i AuthKey_XXXXXXXXXX.p8`                                       |
+| `APPLE_TEAM_ID`        | Safari  | [Apple Developer → Membership](https://developer.apple.com/account) — Team ID                             |
 
 Add these in your repository's **Settings → Secrets and variables → Actions**.
 
