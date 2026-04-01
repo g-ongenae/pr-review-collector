@@ -44,6 +44,7 @@
   // ── Review scraping ──────────────────────────────────────────────────────
   function scrapeReviews() {
     const reviews = [];
+    let totalBeforeFiltering = 0;
 
     // ── 1. Review threads (groups linked comments together) ──────────────
     const processedThreads = new Set();
@@ -52,6 +53,7 @@
       .forEach((thread) => {
         if (processedThreads.has(thread)) return;
         processedThreads.add(thread);
+        totalBeforeFiltering++;
         // Skip resolved threads (conversation page)
         if (thread.getAttribute('data-resolved') === 'true') return;
         const commentEls = thread.querySelectorAll('.review-comment');
@@ -72,6 +74,7 @@
     // Catch any orphan .review-comment not inside a thread container
     document.querySelectorAll('.review-comment').forEach((el) => {
       if (el.closest('.review-thread-component, .js-resolvable-timeline-thread-container')) return;
+      totalBeforeFiltering++;
       const comment = extractInlineComment(el);
       if (comment && !isNoiseComment(comment) && !isIgnoredAuthor(comment.author)) {
         comment.replies = [];
@@ -81,6 +84,7 @@
 
     // ── 2. React-based "Files changed" / "changes" page ────────────────────
     document.querySelectorAll('[data-testid="review-thread"]').forEach((thread) => {
+      totalBeforeFiltering++;
       // Skip resolved threads on changes page
       if (isResolvedChangesThread(thread)) return;
       const main = extractChangesPageComment(thread);
@@ -102,30 +106,34 @@
       if (!wrapper) return;
       // Skip if already captured as inline review comment
       if (el.closest('.review-comment, .js-line-comments, .js-inline-comments-container')) return;
+      totalBeforeFiltering++;
       const c = extractConversationComment(el, wrapper);
       if (c && !isNoiseComment(c) && !isIgnoredAuthor(c.author)) reviews.push(c);
     });
 
     // ── 4. SonarQube / SonarCloud annotations (classic DOM) ──────────────
     document.querySelectorAll('[data-sonar-issue], .sonar-review-comment').forEach((el) => {
+      totalBeforeFiltering++;
       const c = extractSonarComment(el);
       if (c) reviews.push(c);
     });
 
     // ── 5. Inline annotations on changes page (SonarCloud, CI checks, etc.)
     document.querySelectorAll('[data-testid^="annotation-"], [class*="InlineAnnotation-module"]').forEach((el) => {
+      totalBeforeFiltering++;
       const c = extractInlineAnnotation(el);
       if (c && !isIgnoredAuthor(c.author)) reviews.push(c);
     });
 
     // Deduplicate by a rough key
     const seen = new Set();
-    return reviews.filter((r) => {
+    const dedupedReviews = reviews.filter((r) => {
       const key = `${r.author}|${r.comment.slice(0, 60)}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
+    return { reviews: dedupedReviews, allFiltered: dedupedReviews.length === 0 && totalBeforeFiltering > 0 };
   }
 
   // ── Inline diff comment ──────────────────────────────────────────────────
@@ -574,9 +582,12 @@
 
   // ── Load / render reviews ─────────────────────────────────────────────────
   let reviews = [];
+  let allFiltered = false;
 
   function loadReviews() {
-    reviews = scrapeReviews();
+    const result = scrapeReviews();
+    reviews = result.reviews;
+    allFiltered = result.allFiltered;
     // Restore saved decisions from session storage
     const saved = JSON.parse(sessionStorage.getItem('prc-decisions') || '{}');
     reviews.forEach((r, i) => {
@@ -599,11 +610,23 @@
     `;
   }
 
+  const ALL_CLEAR_MESSAGES = [
+    'All review comments are resolved or from ignored authors. Nothing left to address!',
+    'No actionable comments — all threads are resolved or filtered out. Nice work!',
+    'All clear! Every comment on this page is either resolved or from an ignored author.',
+    'Nothing to review here — all comments are resolved or filtered. Ship it!',
+  ];
+
   function renderList() {
     const list = document.getElementById('prc-list');
     if (!reviews.length) {
-      list.innerHTML =
-        '<p class="prc-empty">No review comments found on this page.<br>Make sure you\'re on the "Files changed" or "Conversation" tab.</p>';
+      if (allFiltered) {
+        const msg = ALL_CLEAR_MESSAGES[Math.floor(Math.random() * ALL_CLEAR_MESSAGES.length)];
+        list.innerHTML = `<p class="prc-empty">${msg}</p>`;
+      } else {
+        list.innerHTML =
+          '<p class="prc-empty">No review comments found on this page.<br>Make sure you\'re on the "Files changed" or "Conversation" tab.</p>';
+      }
       return;
     }
     list.innerHTML = reviews.map((r, i) => renderCard(r, i)).join('');
