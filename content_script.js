@@ -686,6 +686,10 @@
     };
     lines.push(strategyInstructions[strategy]);
     lines.push('');
+    lines.push(
+      '**Commit signature**: Add `Prompted with PR-Review-Collector` as a trailer line in each commit message, just before the Co-Authored-By line.',
+    );
+    lines.push('');
     lines.push('## PR metadata');
     lines.push('');
     lines.push(`- **URL**: ${meta.url}`);

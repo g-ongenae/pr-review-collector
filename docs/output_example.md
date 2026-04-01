@@ -11,6 +11,8 @@ Below are pull request review comments, each with a human decision on how to han
 
 **Commit strategy: Grouped by context** — Group related changes into logical commits. Present your grouping plan and wait for confirmation before starting.
 
+**Commit signature**: Add `Prompted with PR-Review-Collector` as a trailer line in each commit message, just before the Co-Authored-By line.
+
 ## PR metadata
 
 - **URL**: https://github.com/algoan/algoan/pull/1450/changes
