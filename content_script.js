@@ -569,10 +569,10 @@
         <div id="prc-commit-strategy">
           <label for="prc-strategy-select">Commit strategy:</label>
           <select id="prc-strategy-select">
+            <option value="amend">Amend / rebase</option>
             <option value="single">Single commit</option>
             <option value="grouped" selected>Grouped by context</option>
             <option value="atomic">One commit per review</option>
-            <option value="amend">Amend / rebase</option>
           </select>
         </div>
         <button id="prc-copy">📋 Copy to clipboard</button>

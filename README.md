@@ -133,7 +133,7 @@ Safari supports WebExtensions through Apple's converter tool. You need a Mac wit
    | **Other**   | Custom action described in the note field                                         |
 
 5. Add an optional free-text note to any decision for extra context
-6. Select a **commit strategy** at the bottom (Single commit / Grouped by context / One commit per review / Amend · rebase)
+6. Select a **commit strategy** at the bottom (Amend · rebase / Single commit / Grouped by context / One commit per review)
 7. Click **Copy to clipboard**
 8. Paste into Claude
 
