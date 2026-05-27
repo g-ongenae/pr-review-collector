@@ -695,7 +695,12 @@
     lines.push('');
     lines.push('## Instructions');
     lines.push('');
-    lines.push('- **Apply** each decision as stated (Fix, Ack, Explain, etc.)');
+    lines.push('- **Fix**: change the code to address the comment');
+    lines.push('- **Ack**: acknowledge the comment, no code change needed');
+    lines.push(
+      '- **Explain**: investigate the code and explain what the comment refers to (e.g. how a bug could occur, what a suggested feature would entail) — no code change, report findings only',
+    );
+    lines.push('- **Other**: follow the note field for custom instructions');
     lines.push('- **Ask** for clarification if any information is missing before making changes');
     lines.push('- **Plan first**: list all actions you will take, then wait for confirmation');
     lines.push('- **Track progress**: update the TODO list as you complete each item');

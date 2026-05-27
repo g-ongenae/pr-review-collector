@@ -73,6 +73,20 @@
       .links a:hover {
         text-decoration: underline;
       }
+      .decisions {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 3px 10px;
+        margin: 0;
+      }
+      .decisions dt {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .decisions dd {
+        margin: 0;
+        color: #57606a;
+      }
       .status {
         font-size: 11px;
         color: #57606a;
@@ -119,9 +133,13 @@
 
     <div class="section">
       <div class="section-title">Decisions</div>
-      <div style="line-height: 1.7">
-        <strong>Fix</strong> · <strong>Ack</strong> · <strong>Explain</strong> · <strong>Ignore</strong> · <strong>Other</strong>
-      </div>
+      <dl class="decisions">
+        <dt>Fix</dt><dd>Change the code to address the comment</dd>
+        <dt>Ack</dt><dd>Acknowledge; no code change needed</dd>
+        <dt>Explain</dt><dd>Investigate and explain what the comment refers to (e.g. how a bug could occur, what a suggested feature would entail)</dd>
+        <dt>Ignore</dt><dd>Skip entirely — excluded from the prompt</dd>
+        <dt>Other</dt><dd>Custom action described in the note field</dd>
+      </dl>
     </div>
 
     <div class="status" id="status"></div>
