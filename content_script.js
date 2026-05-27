@@ -639,7 +639,7 @@
   }
 
   function renderCard(r, i) {
-    const DECISIONS = ['', 'Apply', 'Fix', 'Ack', 'Explain', 'Defer', "Won't fix", 'Ignore', 'Other'];
+    const DECISIONS = ['', 'Fix', 'Ack', 'Explain', 'Ignore', 'Other'];
     const opts = DECISIONS.map(
       (d) => `<option value="${d}" ${r.decision === d ? 'selected' : ''}>${d || '— pick decision —'}</option>`,
     ).join('');
@@ -695,7 +695,7 @@
     lines.push('');
     lines.push('## Instructions');
     lines.push('');
-    lines.push('- **Apply** each decision as stated (Apply, Fix, Explain, etc.)');
+    lines.push('- **Apply** each decision as stated (Fix, Ack, Explain, etc.)');
     lines.push('- **Ask** for clarification if any information is missing before making changes');
     lines.push('- **Plan first**: list all actions you will take, then wait for confirmation');
     lines.push('- **Track progress**: update the TODO list as you complete each item');
