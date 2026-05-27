@@ -572,6 +572,7 @@
             <option value="single">Single commit</option>
             <option value="grouped" selected>Grouped by context</option>
             <option value="atomic">One commit per review</option>
+            <option value="amend">Amend / rebase</option>
           </select>
         </div>
         <button id="prc-copy">📋 Copy to clipboard</button>
@@ -711,6 +712,8 @@
       grouped:
         '**Commit strategy: Grouped by context** — Group related changes into logical commits. Present your grouping plan and wait for confirmation before starting.',
       atomic: '**Commit strategy: One commit per review** — Create a separate commit for each review item.',
+      amend:
+        '**Commit strategy: Amend / rebase** — Amend or rebase existing commits rather than creating new ones. Identify which existing commit each change belongs to, then amend it (or use interactive rebase). Present your plan and wait for confirmation before starting.',
     };
     lines.push(strategyInstructions[strategy]);
     lines.push('');
