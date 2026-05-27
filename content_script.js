@@ -56,7 +56,7 @@
         totalBeforeFiltering++;
         // Skip resolved threads (conversation page)
         if (thread.getAttribute('data-resolved') === 'true') return;
-        const commentEls = thread.querySelectorAll('.review-comment');
+        const commentEls = thread.querySelectorAll('.review-comment, [data-testid="automated-review-comment"]');
         if (!commentEls.length) return;
         // First comment is the main review
         const main = extractInlineComment(commentEls[0]);
@@ -72,7 +72,7 @@
         reviews.push(main);
       });
     // Catch any orphan .review-comment not inside a thread container
-    document.querySelectorAll('.review-comment').forEach((el) => {
+    document.querySelectorAll('.review-comment, [data-testid="automated-review-comment"]').forEach((el) => {
       if (el.closest('.review-thread-component, .js-resolvable-timeline-thread-container')) return;
       totalBeforeFiltering++;
       const comment = extractInlineComment(el);
@@ -138,11 +138,11 @@
 
   // ── Inline diff comment ──────────────────────────────────────────────────
   function extractInlineComment(el) {
-    const body = el.querySelector('.comment-body, .js-comment-body');
+    const body = el.querySelector('.comment-body, .js-comment-body, .markdown-body');
     if (!body) return null;
 
-    const authorEl = el.querySelector('.author');
-    const author = authorEl ? authorEl.innerText.trim() : 'unknown';
+    const authorEl = el.querySelector('.author, [data-testid="avatar-name"]');
+    const author = authorEl ? (authorEl.innerText || authorEl.textContent || '').trim() : 'unknown';
 
     // File path: try multiple strategies for GitHub's DOM
     let file = '';
@@ -153,11 +153,11 @@
     if (pathInput) {
       file = pathInput.value;
     }
-    // Strategy 2: conversation tab — the review thread <details> has a <summary> with a file link
+    // Strategy 2: conversation tab — the review thread header contains a file link
     if (!file) {
       const reviewThread = el.closest('.review-thread-component, .js-resolvable-timeline-thread-container');
       if (reviewThread) {
-        const fileLink = reviewThread.querySelector('summary a.text-mono');
+        const fileLink = reviewThread.querySelector('a.text-mono');
         if (fileLink) file = fileLink.innerText.trim();
       }
     }
@@ -231,10 +231,10 @@
 
   // Extract a reply comment (lightweight — just author + text)
   function extractReply(el) {
-    const body = el.querySelector('.comment-body, .js-comment-body');
+    const body = el.querySelector('.comment-body, .js-comment-body, .markdown-body');
     if (!body) return null;
-    const authorEl = el.querySelector('.author');
-    const author = authorEl ? authorEl.innerText.trim() : 'unknown';
+    const authorEl = el.querySelector('.author, [data-testid="avatar-name"]');
+    const author = authorEl ? (authorEl.innerText || authorEl.textContent || '').trim() : 'unknown';
     const cleanBody = body.cloneNode(true);
     cleanBody
       .querySelectorAll('.js-suggested-changes-blob, .js-suggested-changes-container')
