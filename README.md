@@ -26,7 +26,7 @@ This extension gives you a sidebar panel directly on the GitHub PR page. For eac
 - Suggestion diffs displayed with `+`/`-` markers and color-coded lines
 - Sidebar panel with per-review decision picker and free-text annotation
 - **Ignored authors** — configurable list (stored in `localStorage`) to permanently hide bot noise (e.g. `nx-cloud`, `notion-workspace`)
-- **Commit strategy** selector — choose between single commit, grouped by context, or one commit per review
+- **Commit strategy** selector — single commit, grouped by context, one commit per review, or amend/rebase existing commits
 - **Reset all decisions** button to start over
 - Decisions persist in `sessionStorage` — a page refresh won't wipe your work
 - Reviews marked **Ignore** are dimmed in the UI and excluded from the output
@@ -124,19 +124,16 @@ Safari supports WebExtensions through Apple's converter tool. You need a Mac wit
 3. The sidebar opens and scrapes all visible review comments
 4. For each comment, pick a decision from the dropdown:
 
-   | Decision      | When to use                                         |
-   | ------------- | --------------------------------------------------- |
-   | **Apply**     | Accept the suggested code change as-is              |
-   | **Fix**       | Address the issue raised (add guidance in the note) |
-   | **Ack**       | Acknowledged, no code change needed (informational) |
-   | **Explain**   | Ask Claude to explain before acting                 |
-   | **Defer**     | Valid point, but out of scope for this PR           |
-   | **Won't fix** | Disagree with the comment — skip intentionally      |
-   | **Ignore**    | Noise — excluded from the output entirely           |
-   | **Other**     | Anything else (use the note field)                  |
+   | Decision    | When to use                                                                       |
+   | ----------- | --------------------------------------------------------------------------------- |
+   | **Fix**     | Change the code to address the comment                                            |
+   | **Ack**     | Acknowledged, no code change needed                                               |
+   | **Explain** | Investigate and explain what the comment refers to — no code change, report only  |
+   | **Ignore**  | Noise — excluded from the output entirely                                         |
+   | **Other**   | Custom action described in the note field                                         |
 
 5. Add an optional free-text note to any decision for extra context
-6. Select a **commit strategy** at the bottom (Single commit / Grouped by context / One commit per review)
+6. Select a **commit strategy** at the bottom (Single commit / Grouped by context / One commit per review / Amend · rebase)
 7. Click **Copy to clipboard**
 8. Paste into Claude
 
@@ -147,12 +144,9 @@ Expand the **Ignored authors** section to manage which bot accounts are filtered
 ### Decision format in the output
 
 ```
-Human decision: Apply
 Human decision: Fix / Use UTC for the base of the date
 Human decision: Ack / Already handled in the previous commit
 Human decision: Explain / What happens in this edge case?
-Human decision: Defer / Good point, will address in a follow-up PR
-Human decision: Won't fix / False positive, the test suite covers this
 Human decision: Other / Needs discussion with the team first
 ```
 
@@ -168,7 +162,10 @@ The clipboard content is structured Markdown with the following sections:
 Below are pull request review comments, each with a human decision on how to handle it.
 
 ## Instructions
-- **Apply** each decision as stated (Apply, Fix, Explain, etc.)
+- **Fix**: change the code to address the comment
+- **Ack**: acknowledge the comment, no code change needed
+- **Explain**: investigate and explain what the comment refers to — no code change, report findings only
+- **Other**: follow the note field for custom instructions
 - **Ask** for clarification if any information is missing before making changes
 - **Plan first**: list all actions you will take, then wait for confirmation
 - **Track progress**: update the TODO list as you complete each item
