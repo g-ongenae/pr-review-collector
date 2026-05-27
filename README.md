@@ -124,13 +124,13 @@ Safari supports WebExtensions through Apple's converter tool. You need a Mac wit
 3. The sidebar opens and scrapes all visible review comments
 4. For each comment, pick a decision from the dropdown:
 
-   | Decision    | When to use                                                                       |
-   | ----------- | --------------------------------------------------------------------------------- |
-   | **Fix**     | Change the code to address the comment                                            |
-   | **Ack**     | Acknowledged, no code change needed                                               |
-   | **Explain** | Investigate and explain what the comment refers to — no code change, report only  |
-   | **Ignore**  | Noise — excluded from the output entirely                                         |
-   | **Other**   | Custom action described in the note field                                         |
+   | Decision    | When to use                                                                      |
+   | ----------- | -------------------------------------------------------------------------------- |
+   | **Fix**     | Change the code to address the comment                                           |
+   | **Ack**     | Acknowledged, no code change needed                                              |
+   | **Explain** | Investigate and explain what the comment refers to — no code change, report only |
+   | **Ignore**  | Noise — excluded from the output entirely                                        |
+   | **Other**   | Custom action described in the note field                                        |
 
 5. Add an optional free-text note to any decision for extra context
 6. Select a **commit strategy** at the bottom (Amend · rebase / Single commit / Grouped by context / One commit per review)
