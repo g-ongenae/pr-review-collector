@@ -197,9 +197,10 @@
       }
     }
 
-    // Suggested change block
+    // Suggested change block — old format inside body, new Copilot format outside body
     let suggestion = '';
-    const suggestBlob = el.querySelector('.js-suggested-changes-blob');
+    const suggestBlob =
+      el.querySelector('.js-suggested-changes-blob') || el.querySelector('[data-testid="automated-review-suggestion"]');
     if (suggestBlob) {
       suggestion = extractSuggestionDiff(suggestBlob);
     }
@@ -274,9 +275,11 @@
     const bodyEl = firstComment.querySelector('.markdown-body');
     if (!bodyEl) return null;
 
-    // Suggested change (same .js-suggested-changes-blob structure as conversation tab)
+    // Suggested change — old format inside bodyEl, new Copilot format is a sibling of bodyEl
     let suggestion = '';
-    const suggestBlob = bodyEl.querySelector('.js-suggested-changes-blob');
+    const suggestBlob =
+      bodyEl.querySelector('.js-suggested-changes-blob') ||
+      firstComment.querySelector('[data-testid="automated-review-suggestion"]');
     if (suggestBlob) {
       suggestion = extractSuggestionDiff(suggestBlob);
     }
@@ -352,16 +355,32 @@
   }
 
   // Extract suggestion diff with +/- markers from GitHub's suggestion blob.
-  // GitHub renders suggestions as a table where:
-  //   - Deletion <td> has classes: blob-code-deletion js-blob-code-deletion
-  //   - Addition <td> has classes: blob-code-addition js-blob-code-addition
+  // Handles two formats:
+  //   Old: <td class="blob-code-deletion"> / <td class="blob-code-addition">
+  //   New (Copilot automated review): <code class="...syntaxHighlightedDeletionLine..."> /
+  //        <code class="...syntaxHighlightedAdditionLine..."> with text in [class*="diffTextInner"]
   function extractSuggestionDiff(blob) {
     const lines = [];
-    const deletions = blob.querySelectorAll('td.blob-code-deletion');
-    const additions = blob.querySelectorAll('td.blob-code-addition');
 
+    // New Copilot automated review format (CSS module class names, preserves interleaved order)
+    const newFormatCells = blob.querySelectorAll(
+      '[class*="syntaxHighlightedDeletionLine"], [class*="syntaxHighlightedAdditionLine"]',
+    );
+    if (newFormatCells.length) {
+      newFormatCells.forEach((code) => {
+        const textEl = code.querySelector('[class*="diffTextInner"]');
+        const text = (textEl ? textEl.textContent : code.textContent).trim();
+        const isDeletion = /syntaxHighlightedDeletionLine/.test(code.className);
+        lines.push((isDeletion ? '- ' : '+ ') + text);
+      });
+      return lines.join('\n');
+    }
+
+    // Old format: blob-code-deletion / blob-code-addition
     // Use textContent instead of innerText — innerText returns empty strings
     // when content-visibility:auto hides off-screen elements on the changes page.
+    const deletions = blob.querySelectorAll('td.blob-code-deletion');
+    const additions = blob.querySelectorAll('td.blob-code-addition');
     deletions.forEach((td) => lines.push('- ' + (td.textContent || '').trim()));
     additions.forEach((td) => lines.push('+ ' + (td.textContent || '').trim()));
 
