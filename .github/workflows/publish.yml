@@ -9,10 +9,10 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 26
           cache: npm
       - run: npm ci
       - name: ESLint
@@ -57,7 +57,7 @@ jobs:
     needs: check-secrets
     if: needs.check-secrets.outputs.has-firefox == 'true' || needs.check-secrets.outputs.has-chrome == 'true' || needs.check-secrets.outputs.has-safari == 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build Firefox package
         run: |
@@ -69,17 +69,17 @@ jobs:
           cp manifest.chrome.json manifest.json
           zip -r extension-chrome.zip manifest.json content_script.js sidebar.css popup.html popup.js icon.svg
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: extension-firefox
           path: extension-firefox.zip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: extension-chrome
           path: extension-chrome.zip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: extension-safari-source
           path: extension-chrome.zip
@@ -90,7 +90,7 @@ jobs:
     needs: [check-secrets, build]
     if: needs.check-secrets.outputs.has-safari == 'true'
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: extension-safari-source
 
@@ -154,7 +154,7 @@ jobs:
     needs: [check-secrets, build]
     if: needs.check-secrets.outputs.has-firefox == 'true'
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: extension-firefox
 
@@ -176,7 +176,7 @@ jobs:
     needs: [check-secrets, build]
     if: needs.check-secrets.outputs.has-chrome == 'true'
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: extension-chrome
 
