@@ -269,4 +269,4 @@ The most useful contributions are updates to the scraping selectors when GitHub 
 
 ## License
 
-MIT
+[MIT](LICENSE)
