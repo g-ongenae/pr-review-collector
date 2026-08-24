@@ -4,6 +4,14 @@
   "description": "A browser extension that scrapes review comments from GitHub Pull Requests, lets you assign a human decision to each one, and copies a structured prompt for Claude.",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/g-ongenae/pr-review-collector.git"
+  },
+  "homepage": "https://github.com/g-ongenae/pr-review-collector#readme",
+  "bugs": {
+    "url": "https://github.com/g-ongenae/pr-review-collector/issues"
+  },
   "scripts": {
     "lint": "eslint --no-warn-ignored *.js",
     "lint:fix": "eslint --no-warn-ignored *.js --fix",

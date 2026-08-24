@@ -15,7 +15,7 @@ Below are pull request review comments, each with a human decision on how to han
 
 ## PR metadata
 
-- **URL**: https://github.com/algoan/algoan/pull/1450/changes
+- **URL**: https://github.com/example-org/example-repo/pull/1450/changes
 - **Title**: [FEAT] Add post banks route
 - **Branch**: pr-author:feat/new-route-for-banks
 
@@ -33,7 +33,7 @@ Below are pull request review comments, each with a human decision on how to han
 
 - **File**: `src/main.ts`
 - **Lines**: L53
-- **Author**: algoan-developer
+- **Author**: teammate-developer
 - **Comment**:
   > why is this needed?
 - **Replies**:
