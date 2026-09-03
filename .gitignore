@@ -3,3 +3,6 @@ manifest.json
 
 # Dependencies (dev only — not part of the extension)
 node_modules/
+
+# Store upload packages
+dist/
