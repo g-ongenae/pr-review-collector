@@ -1,5 +1,6 @@
 // content_script.js
-// Injected on every GitHub PR page. Scrapes reviews and injects the sidebar.
+// Injected on every github.com page (GitHub navigates client-side with Turbo, so a
+// /pull/* match alone would miss in-app navigation). The UI is only shown on PR pages.
 
 (function () {
   if (document.getElementById('prc-sidebar')) return; // already injected
@@ -21,6 +22,47 @@
     sidebar.classList.toggle('prc-open');
     if (sidebar.classList.contains('prc-open')) loadReviews();
   });
+
+  // ── Navigation handling (Turbo / pushState) ──────────────────────────────
+  const PR_PATH_RE = /^\/[^/]+\/[^/]+\/pull\/\d+/;
+  let currentPRPath = null;
+
+  function isPRPage() {
+    return PR_PATH_RE.test(location.pathname);
+  }
+
+  function prKey() {
+    return (location.pathname.match(PR_PATH_RE) || [location.pathname])[0];
+  }
+
+  function onNavigate() {
+    if (!isPRPage()) {
+      toggle.hidden = true;
+      sidebar.classList.remove('prc-open');
+      currentPRPath = null;
+      return;
+    }
+    toggle.hidden = false;
+    const key = prKey();
+    if (key !== currentPRPath) {
+      // Switched to a different PR: drop in-memory state, refresh if the panel is open
+      currentPRPath = key;
+      reviews = [];
+      if (sidebar.classList.contains('prc-open')) loadReviews();
+    }
+  }
+
+  document.addEventListener('turbo:load', onNavigate);
+  document.addEventListener('turbo:render', onNavigate);
+  window.addEventListener('popstate', onNavigate);
+  // Fallback for React-driven route changes (e.g. Files changed tab): GitHub updates <title> on navigation
+  let lastPathname = location.pathname;
+  new MutationObserver(() => {
+    if (location.pathname !== lastPathname) {
+      lastPathname = location.pathname;
+      onNavigate();
+    }
+  }).observe(document.head, { childList: true, subtree: true, characterData: true });
 
   // ── Ignored authors ─────────────────────────────────────────────────────
   const IGNORED_AUTHORS_KEY = 'prc-ignored-authors';
@@ -604,12 +646,16 @@
   let reviews = [];
   let allFiltered = false;
 
+  function decisionsKey() {
+    return `prc-decisions:${prKey()}`;
+  }
+
   function loadReviews() {
     const result = scrapeReviews();
     reviews = result.reviews;
     allFiltered = result.allFiltered;
     // Restore saved decisions from session storage
-    const saved = JSON.parse(sessionStorage.getItem('prc-decisions') || '{}');
+    const saved = JSON.parse(sessionStorage.getItem(decisionsKey()) || '{}');
     reviews.forEach((r, i) => {
       if (saved[i]) {
         r.decision = saved[i].decision;
@@ -695,9 +741,9 @@
   function updateDecision(i, field, val) {
     reviews[i][field] = val;
     // Persist to session storage
-    const saved = JSON.parse(sessionStorage.getItem('prc-decisions') || '{}');
+    const saved = JSON.parse(sessionStorage.getItem(decisionsKey()) || '{}');
     saved[i] = { decision: reviews[i].decision, note: reviews[i].note };
-    sessionStorage.setItem('prc-decisions', JSON.stringify(saved));
+    sessionStorage.setItem(decisionsKey(), JSON.stringify(saved));
     // Toggle ignored style
     const card = document.querySelector(`.prc-card[data-idx="${i}"]`);
     if (card) card.classList.toggle('prc-card-ignored', reviews[i].decision === 'Ignore');
@@ -828,7 +874,7 @@
 
   // ── Wire up sidebar buttons ───────────────────────────────────────────────
   document.getElementById('prc-reset').addEventListener('click', () => {
-    sessionStorage.removeItem('prc-decisions');
+    sessionStorage.removeItem(decisionsKey());
     reviews.forEach((r) => {
       r.decision = '';
       r.note = '';
@@ -837,6 +883,16 @@
   });
   document.getElementById('prc-close').addEventListener('click', () => sidebar.classList.remove('prc-open'));
   document.getElementById('prc-refresh').addEventListener('click', loadReviews);
+
+  // ── Popup status ping ─────────────────────────────────────────────────────
+  // The toolbar popup asks "are you there?"; this script only runs on PR pages,
+  // so a reply is enough to prove the extension is active (no URL access needed).
+  const runtime =
+    (typeof browser !== 'undefined' && browser.runtime) || (typeof chrome !== 'undefined' && chrome.runtime);
+  runtime?.onMessage?.addListener((msg, _sender, sendResponse) => {
+    if (msg?.type !== 'prc-ping') return;
+    sendResponse({ ok: isPRPage(), threads: reviews.length, open: sidebar.classList.contains('prc-open') });
+  });
 
   document.getElementById('prc-copy').addEventListener('click', () => {
     const text = buildOutput();
@@ -857,6 +913,9 @@
         document.body.removeChild(ta);
       });
   });
+
+  // Initial state for the page we were injected on
+  onNavigate();
 
   // ── Utilities ─────────────────────────────────────────────────────────────
   function escHtml(s) {

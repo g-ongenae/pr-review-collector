@@ -9,10 +9,10 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["activeTab", "clipboardWrite"],
+  "permissions": ["clipboardWrite"],
   "content_scripts": [
     {
-      "matches": ["https://github.com/*/pull/*"],
+      "matches": ["https://github.com/*"],
       "js": ["content_script.js"],
       "css": ["sidebar.css"],
       "run_at": "document_idle"

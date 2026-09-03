@@ -1,5 +1,8 @@
+// Prefer the promise-based `browser` namespace (Firefox); Chrome MV3 `chrome.*` also returns promises.
+const ext = (typeof browser !== 'undefined' && browser) || chrome;
+
 // Populate version from manifest
-const manifest = chrome?.runtime?.getManifest?.() || browser?.runtime?.getManifest?.();
+const manifest = ext?.runtime?.getManifest?.();
 if (manifest) {
   document.getElementById('version').textContent = `v${manifest.version}`;
 }
@@ -12,21 +15,20 @@ function setStatus(active, message) {
   statusEl.append(dot, ` ${message}`);
 }
 
-// Check if current tab is a GitHub PR page
+// Ping the content script: it is only injected on GitHub PR pages, so a reply means we are active.
 async function checkStatus() {
   try {
-    const queryFn =
-      (typeof chrome !== 'undefined' && chrome.tabs?.query) || (typeof browser !== 'undefined' && browser.tabs?.query);
-    const tabs = queryFn ? await queryFn({ active: true, currentWindow: true }) : [];
-    const url = tabs?.[0]?.url || '';
-    const isPR = /^https:\/\/github\.com\/.+\/pull\/\d+/.test(url);
-    if (isPR) {
+    const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) throw new Error('No active tab');
+    const reply = await ext.tabs.sendMessage(tab.id, { type: 'prc-ping' });
+    if (reply?.ok) {
       setStatus(true, 'Active on this PR page');
     } else {
       setStatus(false, 'Navigate to a GitHub PR to use this extension');
     }
   } catch {
-    setStatus(false, 'Open a GitHub PR to get started');
+    // No receiver → content script not injected → not a PR page
+    setStatus(false, 'Navigate to a GitHub PR to use this extension');
   }
 }
 

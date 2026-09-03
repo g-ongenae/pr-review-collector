@@ -49,7 +49,7 @@ flowchart LR
 
 Extension files: `manifest.{firefox,chrome}.json` · `content_script.js` · `sidebar.css`
 
-Permissions required: `activeTab` · `clipboardWrite` (no data leaves the browser — see [PRIVACY.md](./PRIVACY.md))
+Permissions required: `clipboardWrite` only (no data leaves the browser — see [PRIVACY.md](./PRIVACY.md))
 
 ---
 

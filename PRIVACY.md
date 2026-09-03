@@ -9,7 +9,7 @@ PR Review Collector is a browser extension that reads review comments displayed 
 **The extension does not collect, transmit, sell, or share any data.**
 
 - It makes **no network requests** of any kind. There is no backend server, no analytics, no telemetry, no crash reporting.
-- It runs **only** on pages matching `https://github.com/*/pull/*`.
+- It runs only on `https://github.com` pages. Because GitHub navigates client-side, the script is loaded on every github.com page, but it stays idle and shows its button **only** on pull request pages (`/owner/repo/pull/<number>`).
 - All processing happens locally in your browser. Review comments are read from the page you are viewing and rendered in a sidebar on that same page.
 - Content only leaves the browser when **you** click **Copy to clipboard**, and then only to your own system clipboard.
 
@@ -26,11 +26,10 @@ This data never leaves your device.
 
 ## Permissions
 
-| Permission                             | Why it is needed                                                                    |
-| -------------------------------------- | ----------------------------------------------------------------------------------- |
-| `activeTab`                            | Lets the toolbar popup check whether the current tab is a GitHub pull request page. |
-| `clipboardWrite`                       | Lets the **Copy to clipboard** button write the generated prompt to your clipboard. |
-| `github.com/*/pull/*` (content script) | Injects the sidebar and reads review comments on pull request pages only.           |
+| Permission                      | Why it is needed                                                                                                               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `clipboardWrite`                | Lets the **Copy to clipboard** button write the generated prompt to your clipboard.                                            |
+| `github.com/*` (content script) | Loads on github.com so the sidebar survives client-side navigation; the UI and scraping are active on pull request pages only. |
 
 ## Third parties
 
