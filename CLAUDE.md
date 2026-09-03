@@ -14,6 +14,7 @@ manifest.chrome.json  — Chrome/Edge/Brave (MV3)
 manifest.firefox.json — Firefox (MV2)
 manifest.json         — Gitignored copy of the active manifest (cp manifest.<browser>.json manifest.json)
 icon.svg / icons/     — Extension icon (SVG source + generated PNGs 16–128px, referenced by both manifests)
+PRIVACY.md            — Privacy policy linked from the store listings
 docs/                 — Architecture diagram, example output
 ```
 

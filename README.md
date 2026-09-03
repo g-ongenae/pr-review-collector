@@ -49,7 +49,7 @@ flowchart LR
 
 Extension files: `manifest.{firefox,chrome}.json` · `content_script.js` · `sidebar.css`
 
-Permissions required: `activeTab` · `clipboardWrite` · `storage`
+Permissions required: `activeTab` · `clipboardWrite` (no data leaves the browser — see [PRIVACY.md](./PRIVACY.md))
 
 ---
 
@@ -222,6 +222,7 @@ pr-review-collector/
 ├── popup.js               # Popup logic (version, status)
 ├── icon.svg               # Extension icon (source)
 ├── icons/                 # PNG icons (16–128px) generated from icon.svg
+├── PRIVACY.md             # Privacy policy (linked from store listings)
 └── docs/
     ├── architecture.svg   # Architecture diagram
     └── output_example.md  # Example clipboard output
