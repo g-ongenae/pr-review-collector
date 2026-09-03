@@ -4,9 +4,16 @@ if (manifest) {
   document.getElementById('version').textContent = `v${manifest.version}`;
 }
 
+function setStatus(active, message) {
+  const statusEl = document.getElementById('status');
+  statusEl.replaceChildren();
+  const dot = document.createElement('span');
+  dot.className = `status-dot ${active ? 'active' : 'inactive'}`;
+  statusEl.append(dot, ` ${message}`);
+}
+
 // Check if current tab is a GitHub PR page
 async function checkStatus() {
-  const statusEl = document.getElementById('status');
   try {
     const queryFn =
       (typeof chrome !== 'undefined' && chrome.tabs?.query) || (typeof browser !== 'undefined' && browser.tabs?.query);
@@ -14,12 +21,12 @@ async function checkStatus() {
     const url = tabs?.[0]?.url || '';
     const isPR = /^https:\/\/github\.com\/.+\/pull\/\d+/.test(url);
     if (isPR) {
-      statusEl.innerHTML = '<span class="status-dot active"></span> Active on this PR page';
+      setStatus(true, 'Active on this PR page');
     } else {
-      statusEl.innerHTML = '<span class="status-dot inactive"></span> Navigate to a GitHub PR to use this extension';
+      setStatus(false, 'Navigate to a GitHub PR to use this extension');
     }
   } catch {
-    statusEl.innerHTML = '<span class="status-dot inactive"></span> Open a GitHub PR to get started';
+    setStatus(false, 'Open a GitHub PR to get started');
   }
 }
 
