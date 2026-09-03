@@ -13,7 +13,7 @@ popup.html / popup.js — Extension popup (version display, status check)
 manifest.chrome.json  — Chrome/Edge/Brave (MV3)
 manifest.firefox.json — Firefox (MV2)
 manifest.json         — Symlink to active manifest
-icon.svg              — Extension icon
+icon.svg / icons/     — Extension icon (SVG source + generated PNGs 16–128px, referenced by both manifests)
 docs/                 — Architecture diagram, example output
 ```
 

@@ -62,12 +62,12 @@ jobs:
       - name: Build Firefox package
         run: |
           cp manifest.firefox.json manifest.json
-          zip -r extension-firefox.zip manifest.json content_script.js sidebar.css popup.html popup.js icon.svg
+          zip -r extension-firefox.zip manifest.json content_script.js sidebar.css popup.html popup.js icons/
 
       - name: Build Chrome package
         run: |
           cp manifest.chrome.json manifest.json
-          zip -r extension-chrome.zip manifest.json content_script.js sidebar.css popup.html popup.js icon.svg
+          zip -r extension-chrome.zip manifest.json content_script.js sidebar.css popup.html popup.js icons/
 
       - uses: actions/upload-artifact@v7
         with:

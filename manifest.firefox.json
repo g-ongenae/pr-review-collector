@@ -4,6 +4,11 @@
   "version": "1.0.0",
   "description": "Collect GitHub PR review comments and assign human decisions for Claude.",
   "permissions": ["activeTab", "clipboardWrite", "storage", "<all_urls>"],
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
   "content_scripts": [
     {
       "matches": ["https://github.com/*/pull/*"],
@@ -15,7 +20,8 @@
   "browser_action": {
     "default_title": "PR Review Collector",
     "default_icon": {
-      "48": "icon.svg"
+      "48": "icons/icon-48.png",
+      "96": "icons/icon-96.png"
     },
     "default_popup": "popup.html"
   }

@@ -220,7 +220,8 @@ pr-review-collector/
 ├── sidebar.css            # Sidebar styles (light + dark mode)
 ├── popup.html             # Toolbar popup (extension info)
 ├── popup.js               # Popup logic (version, status)
-├── icon.svg               # Extension icon
+├── icon.svg               # Extension icon (source)
+├── icons/                 # PNG icons (16–128px) generated from icon.svg
 └── docs/
     ├── architecture.svg   # Architecture diagram
     └── output_example.md  # Example clipboard output
