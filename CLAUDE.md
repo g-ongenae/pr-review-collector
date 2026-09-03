@@ -12,7 +12,7 @@ sidebar.css         — Sidebar styles (light/dark mode)
 popup.html / popup.js — Extension popup (version display, status check)
 manifest.chrome.json  — Chrome/Edge/Brave (MV3)
 manifest.firefox.json — Firefox (MV2)
-manifest.json         — Symlink to active manifest
+manifest.json         — Gitignored copy of the active manifest (cp manifest.<browser>.json manifest.json)
 icon.svg / icons/     — Extension icon (SVG source + generated PNGs 16–128px, referenced by both manifests)
 docs/                 — Architecture diagram, example output
 ```
@@ -49,5 +49,5 @@ There are no tests. Validation is manual — load the extension on a GitHub PR p
 
 - DOM selectors rely on GitHub's internal class names (`.review-comment`, `.js-resolvable-timeline-thread-container`, `[data-testid="review-thread"]`, etc.). These can break when GitHub ships UI changes.
 - The Files-changed page uses `textContent` instead of `innerText` because `content-visibility: auto` hides off-screen elements from `innerText`.
-- `manifest.json` is a symlink — keep `manifest.chrome.json` and `manifest.firefox.json` as the source of truth.
+- `manifest.json` is a gitignored copy — keep `manifest.chrome.json` and `manifest.firefox.json` as the source of truth.
 - Version must be updated in both manifests and `package.json` when releasing.
