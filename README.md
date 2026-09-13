@@ -8,6 +8,13 @@ No GitHub login required. No API calls. Fully client-side.
 
 ---
 
+## Installation
+
+- Install on Chrome: [Chrome Web Store](https://chromewebstore.google.com/detail/pr-review-collector/jdkfjefccncegmcelnnbfmmibppjchgi)
+- Install on Firefox: [Firefox Addons](https://addons.mozilla.org/fr/firefox/addon/pr-review-collector/)
+
+---
+
 ## Why
 
 PR reviews come from multiple sources — GitHub Copilot, SonarQube/SonarCloud, and manual developer comments. Triaging them and communicating your intent to an AI assistant is repetitive and error-prone when done by hand.
@@ -53,7 +60,7 @@ Permissions required: `clipboardWrite` only (no data leaves the browser — see 
 
 ---
 
-## Installation
+## Build
 
 The extension ships two manifest files — pick the one for your browser:
 
